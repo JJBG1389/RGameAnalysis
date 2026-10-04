@@ -181,14 +181,14 @@ PERFORMANCE_TARGETS = {
 # Values are robot-contribution targets, not alliance final scores. They provide
 # the correct game-specific scale; competition week then adjusts them.
 FRC_REFERENCE_TARGETS = {
-    2024: {"auto":(20,35),"teleop":(45,80),"rate":"Target repeatable Note cycles with shot preparation occurring while driving.","cycles":"Floor intake -> Speaker scoring; add Amp/Stage only when it improves alliance value."},
-    2023: {"auto":(15,30),"teleop":(35,65),"rate":"Target repeatable grid cycles with automated alignment and low placement miss rate.","cycles":"Loading zone/floor acquisition -> high-value grid placement -> charge-station endgame."},
-    2022: {"auto":(12,24),"teleop":(30,60),"rate":"Target fast Cargo acquisition and repeatable Hub shooting with minimal aim/setup time.","cycles":"Acquire Cargo in pairs where practical -> shoot -> reacquire; protect climb time."},
-    2020: {"auto":(10,24),"teleop":(30,65),"rate":"Target high-confidence Power Cell bursts and minimize collection-to-shot dead time.","cycles":"Collect -> index -> shoot; add Control Panel only if primary scoring is already mature."},
-    2019: {"auto":(9,18),"teleop":(30,55),"rate":"Target fast Hatch/Cargo cycles with alignment assistance.","cycles":"Acquire -> align -> place; prioritize scoring locations that reduce travel and congestion."},
-    2018: {"auto":(10,25),"teleop":(35,70),"rate":"Target fast Cube cycles and reliable ownership transitions.","cycles":"Acquire Cube -> score Switch/Scale -> reacquire; preserve endgame climb reliability."},
-    2017: {"auto":(15,35),"teleop":(35,75),"rate":"Target repeatable gear/fuel contribution with low station-to-score travel loss.","cycles":"Specialize around the highest-value repeatable scoring loop; protect climb reliability."},
-    2016: {"auto":(10,25),"teleop":(30,65),"rate":"Target reliable defense crossing plus high-confidence goal scoring.","cycles":"Cross defenses efficiently -> acquire -> score; avoid low-value mechanism breadth."},
+    2024: {"auto":(20,35),"teleop":(45,80),"rate":"Target 6–10 scored Notes in teleop with shot preparation occurring while driving.","cycles":"Target ~8–14 sec floor-intake-to-Speaker cycles; reserve ~15–25 sec for Stage endgame."},
+    2023: {"auto":(15,30),"teleop":(35,65),"rate":"Target 5–8 scored game pieces with automated Grid alignment and low placement miss rate.","cycles":"Target ~12–20 sec loading-zone/floor-to-Grid cycles; reserve ~15–25 sec for Charge Station endgame."},
+    2022: {"auto":(12,24),"teleop":(30,60),"rate":"Target 8–14 scored Cargo with repeatable Hub shooting and low setup time.","cycles":"Target ~7–12 sec per 2-Cargo acquire/shoot sequence; reserve ~20–30 sec for climb."},
+    2020: {"auto":(10,24),"teleop":(30,65),"rate":"Target 12–20 scored Power Cells with high-confidence shooting bursts.","cycles":"Target ~8–14 sec per 3–5 Cell collect/index/shoot sequence."},
+    2019: {"auto":(9,18),"teleop":(30,55),"rate":"Target 5–8 successful Hatch/Cargo scoring actions with alignment assistance.","cycles":"Target ~14–22 sec loading-station/floor-to-score cycles."},
+    2018: {"auto":(10,25),"teleop":(35,70),"rate":"Target 6–10 successful Cube scoring actions with reliable Switch/Scale ownership transitions.","cycles":"Target ~10–18 sec Cube acquire-to-Switch/Scale cycles; reserve ~20–30 sec for climb."},
+    2017: {"auto":(15,35),"teleop":(35,75),"rate":"Target 4–7 Gear deliveries or a measured high-throughput Fuel role plus reliable climb.","cycles":"Target ~18–28 sec station-to-airship Gear cycles; reserve ~20–30 sec for climb."},
+    2016: {"auto":(10,25),"teleop":(30,65),"rate":"Target 5–8 successful Boulder scores plus repeatable defense crossings.","cycles":"Target ~15–25 sec defense-cross/acquire/score cycles; reserve ~15–25 sec for Challenge/Scale when pursued."},
 }
 
 FTC_REFERENCE_TARGETS = {
