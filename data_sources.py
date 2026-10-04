@@ -95,7 +95,7 @@ def ftcscout_quick_stats(team,season):
 def infer_ftc_profile(team,season):
     """Rolling three-season FTC execution capacity from FTCScout QuickStats."""
     rows=[]; evidence=[]
-    for year in range(int(season)-3,int(season)):
+    # UI year is season ending year; FTCScout season is starting year.\n    for year in range(int(season)-4,int(season)-1):
         try:
             q=ftcscout_quick_stats(team,year)
             count=int(q.get("count") or 0)
