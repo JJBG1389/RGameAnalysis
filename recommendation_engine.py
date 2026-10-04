@@ -31,3 +31,73 @@ def worlds_delta(first,tranche,trajectory,auto_reliability,robot_reliability,cpr
     if tranche in ("T1","T2","T3"):deltas.append("Add a championship-specific counter-meta or alliance-complementarity capability only if its measured value exceeds integration risk.")
     else:deltas.append("Prefer a narrow, proven upgrade path over a championship-scale rebuild; protect practice and reliability.")
     return {"deltas":deltas,"targets":["≥98% match reliability","≥95% autonomous reliability","≥90% CPR against playoff-level disruption","Multiple partner-compatible autonomous options","Measured playoff role that complements likely alliance partners"],"guardrail":"Do not sacrifice a proven scoring loop for a late Worlds feature unless testing shows a clear increase in playoff winning margin."}
+
+
+GAME_FEATURES = {
+    ("FRC", 2026): {
+        "must": ["Fast, wide floor Fuel intake", "High-throughput Fuel storage/indexing", "Repeatable high-rate Hub shooter", "Vision + odometry localization", "Multiple autonomous Fuel-scoring routines"],
+        "should": ["Score from multiple field locations", "Automated aiming/shooter sequencing", "Anti-jam sensing/recovery", "Architecture that retains scoring under traffic/defense"],
+        "optional": ["Tower capability only if measured endgame value exceeds continued Fuel scoring", "Advanced aim-independent/turret solution only after fixed scoring is mature"],
+    },
+    ("FRC", 2025): {
+        "must": ["Fast Coral acquisition", "Reliable L1-L4 Coral placement with L4 emphasis", "AprilTag/odometry reef alignment", "Multi-Coral autonomous capability", "Reliable drivetrain positioning around the Reef"],
+        "should": ["Deep Cage climb", "Automated Coral scoring sequence", "Useful Algae handling without compromising Coral throughput", "Partner-safe autonomous paths"],
+        "optional": ["Expanded Algae specialization", "Additional scoring geometry only after L4 cycles are mature"],
+    },
+    ("FRC", 2024): {
+        "must": ["Fast floor Note intake", "Reliable Speaker scoring", "Vision-assisted aiming/localization", "Multi-Note autonomous", "Fast drivetrain transitions between acquisition and scoring"],
+        "should": ["AMP capability", "Reliable Stage endgame", "Automated shot preparation while driving", "Defense-resistant acquisition"],
+        "optional": ["Trap scoring", "Complex shooting flexibility beyond proven high-value locations"],
+    },
+    ("FTC", 2027): {
+        "must": ["Wide tolerant floor intake", "Buffered multi-element storage", "Highly repeatable HIVE launcher", "Odometry + AprilTag localization", "Reliable multi-TIP autonomous"],
+        "should": ["Automatic chassis aiming", "Fast HIVE recycling geometry", "Simple NECTAR/FLOWER capability if it does not compromise HIVE throughput", "Automatic indexing and jam recovery"],
+        "optional": ["Turreted launcher after fixed/chassis aiming is mature", "Sophisticated FLOWER specialization"],
+    },
+    ("FTC", 2026): {
+        "must": ["Wide Artifact intake", "Fast internal indexing/storage", "Repeatable high-rate scoring mechanism", "Vision/odometry localization", "Strong autonomous scoring"],
+        "should": ["Automatic Artifact classification/sorting", "Flexible scoring orientation", "Automated aiming", "Fast return/base execution"],
+        "optional": ["Turret or other orientation-independent scorer after base shooter is mature"],
+    },
+    ("FTC", 2025): {
+        "must": ["Fast ground Sample intake", "Reliable high-value scoring", "Strong autonomous", "Odometry/vision alignment", "Low-cycle-time extension/lift"],
+        "should": ["Alliance-complementary Sample/Specimen capability", "Reliable ascent when opportunity cost is favorable", "Automated scoring positions"],
+        "optional": ["Full hybrid capability if specialization is already mature"],
+    },
+    ("VEX", 2026): {
+        "must": ["Fast primary game-object acquisition", "Reliable high-throughput scoring", "Compact maneuverable drivetrain", "Autonomous scoring routine", "Mechanism designed for repeated cycles"],
+        "should": ["Game-object control/denial capability", "Multiple autonomous starting strategies", "Defense-resistant scoring routes"],
+        "optional": ["Secondary scoring functions only after primary throughput is mature"],
+    },
+}
+
+def robot_features(program, season, tranche):
+    base = GAME_FEATURES.get((program, int(season)))
+    if not base:
+        base = {
+            "must": ["Reliable drivetrain", "One high-value primary scoring mechanism", "Repeatable autonomous contribution", "Tolerant game-piece acquisition"],
+            "should": ["Automated alignment/localization where useful", "Simple high-value endgame", "Partner-compatible autonomous options"],
+            "optional": ["Secondary scoring capability", "High-complexity mechanism for marginal scoring flexibility"],
+        }
+    must=list(base["must"]); should=list(base["should"]); optional=list(base["optional"])
+    if tranche in ("T5","T6"):
+        # Lower-TEC teams should protect completion and practice time.
+        optional = should[2:] + optional
+        should = should[:2]
+    elif tranche=="T4" and len(should)>3:
+        optional = should[3:] + optional
+        should = should[:3]
+    return {"must":must,"should":should,"optional":optional}
+
+def worlds_feature_delta(program, season, tranche):
+    base = robot_features(program, season, tranche)
+    return {
+        "retain": base["must"][:],
+        "add_or_upgrade": [
+            "Increase autonomous breadth and starting-position flexibility.",
+            "Increase scoring/acquisition tolerance under championship-level traffic and defense.",
+            "Add alliance-complementary capability only when measured playoff value exceeds integration risk.",
+            "Reduce cycle-time variance and automate repetitive driver actions.",
+        ] + (base["optional"][:1] if tranche in ("T1","T2","T3") and base["optional"] else []),
+        "do_not_sacrifice": "Do not destabilize the proven primary scoring loop, autonomous reliability, or driver practice to add a late championship feature.",
+    }
