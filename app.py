@@ -1,5 +1,5 @@
 import streamlit as st
-from recommendation_engine import recommend, worlds_delta, TRANCHE_LABELS, TRAJECTORIES
+from recommendation_engine import recommend, worlds_delta, robot_features, worlds_feature_delta, TRANCHE_LABELS, TRAJECTORIES
 from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
@@ -113,11 +113,31 @@ with r:
         st.markdown(f"- {x}")
     st.success(result["event_target"])
 
+features = robot_features(program, season, tranche)
+st.markdown("### Recommended robot feature set")
+f1,f2,f3 = st.columns(3)
+with f1:
+    st.markdown("#### Must Have")
+    st.caption("Core features the model recommends protecting first.")
+    for x in features["must"]:
+        st.markdown(f"- **{x}**")
+with f2:
+    st.markdown("#### Should Have")
+    st.caption("Add after the core capabilities are reliable and integrated.")
+    for x in features["should"]:
+        st.markdown(f"- {x}")
+with f3:
+    st.markdown("#### Only If Mature")
+    st.caption("Do not let these delay autonomous, reliability, or driver practice.")
+    for x in features["optional"]:
+        st.markdown(f"- {x}")
+
 st.markdown("#### Development allocation")
 st.bar_chart(result["allocation"], horizontal=True)
 
 if worlds_plan:
     d = worlds_delta(result, tranche, trajectory, auto_reliability, robot_reliability, cpr)
+    wf = worlds_feature_delta(program, season, tranche)
     st.divider()
     st.subheader("World Championship delta plan")
     st.write("Keep the first-event plan above. These are the additional deltas to peak again at Worlds.")
@@ -131,6 +151,17 @@ if worlds_plan:
         for x in d["targets"]:
             st.markdown(f"- {x}")
         st.warning(d["guardrail"])
+    st.markdown("#### Robot feature deltas for Worlds")
+    w1,w2 = st.columns(2)
+    with w1:
+        st.markdown("**Retain / protect**")
+        for x in wf["retain"]:
+            st.markdown(f"- {x}")
+    with w2:
+        st.markdown("**Add or upgrade after Event 1 evidence**")
+        for x in wf["add_or_upgrade"]:
+            st.markdown(f"- {x}")
+    st.info(wf["do_not_sacrifice"])
 
 st.divider()
 st.subheader("Live source status")
