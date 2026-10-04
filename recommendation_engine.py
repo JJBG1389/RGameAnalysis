@@ -191,6 +191,17 @@ FRC_REFERENCE_TARGETS = {
     2016: {"auto":(10,25),"teleop":(30,65),"rate":"Target reliable defense crossing plus high-confidence goal scoring.","cycles":"Cross defenses efficiently -> acquire -> score; avoid low-value mechanism breadth."},
 }
 
+FTC_REFERENCE_TARGETS = {
+    2025: {"auto":(20,45),"teleop":(55,105),"rate":"Target 5–8 successful Sample/Specimen scoring actions in teleop, depending on specialization.","cycles":"Target ~12–20 sec scoring cycles; reserve 15–25 sec for a reliable ascent/endgame."},
+    2024: {"auto":(20,45),"teleop":(60,115),"rate":"Target 6–10 successful Pixel scoring cycles plus a reliable endgame contribution.","cycles":"Target ~10–18 sec Pixel cycles; protect the final 20–30 sec for Hang/Drone execution."},
+    2023: {"auto":(20,45),"teleop":(55,110),"rate":"Target 7–12 reliable Cone placements, emphasizing high-value Junctions when cycle time supports them.","cycles":"Target ~9–16 sec Cone cycles from stack/floor to Junction."},
+    2022: {"auto":(15,40),"teleop":(50,100),"rate":"Target 7–12 Freight scores plus the alliance-role Carousel/endgame contribution.","cycles":"Target ~9–16 sec Warehouse-to-Hub cycles; budget ~8–12 sec for Carousel when assigned."},
+    2021: {"auto":(20,50),"teleop":(60,120),"rate":"Target 12–20 scored Rings or equivalent Powershot/high-goal value with low miss rate.","cycles":"Target ~4–7 sec per 3-Ring acquire/index/shoot sequence once positioned."},
+    2020: {"auto":(20,50),"teleop":(50,105),"rate":"Target 5–9 delivered/scored Stones with repeatable Foundation/endgame execution.","cycles":"Target ~12–20 sec quarry-to-building-zone Stone cycles."},
+    2019: {"auto":(15,40),"teleop":(45,95),"rate":"Target 6–10 Mineral scoring cycles plus reliable land/park/hang value.","cycles":"Target ~12–20 sec crater-to-lander Mineral cycles."},
+    2018: {"auto":(15,40),"teleop":(45,95),"rate":"Target 5–9 reliable Glyph placements plus Relic/endgame value when mature.","cycles":"Target ~12–22 sec Glyph acquire-to-Cryptobox cycles; reserve ~20–30 sec for Relic play when pursued."},
+}
+
 TRANCHE_TARGET_FACTOR={"T1":1.45,"T2":1.25,"T3":1.05,"T4":0.85,"T5":0.65,"T6":0.45}
 
 def _week_factor(event_week):
