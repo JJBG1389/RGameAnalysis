@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.9 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.3 · Deploy 2026.10.04.10 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -52,11 +52,9 @@ with st.sidebar:
     worlds_plan = st.toggle("Team plans to attend World Championship", False, help="Turn this on if the team expects to keep developing for World Championship-level play. The tool gives a first-event plan plus a later list of improvements for Worlds. It does not assume the team should rebuild the robot.")
 
     st.divider()
-    st.subheader("Current maturity")
-    primary_gate = st.select_slider("Primary scoring capability", ["Exists","Reliable","Integrated","Contested","Optimized"], value="Integrated", help="How mature is the robot’s MAIN scoring system? Exists = worked once. Reliable = works repeatedly. Integrated = works on the complete robot. Contested = still works with defense, traffic, or imperfect game pieces. Optimized = all of those are true and the team is making it faster. Pick what the robot can prove today, not what you hope it will do.")
-    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5, help="How often the FULL autonomous routine works correctly from start to finish. Example: 18 successful runs out of 20 = 90%. A run fails if the robot misses an important action, loses localization, jams, hits something it should not, or does not finish the planned routine.")
-    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5, help="How often the robot completes a full match without a major robot problem. Example: 19 good full matches out of 20 = 95%. Count broken mechanisms, electrical problems, software crashes, disconnects, and serious jams. Normal driver misses do not count.")
-    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5, help="How much normal scoring the robot keeps when the match gets difficult. Compare average scoring in clean practice with scoring under defense, traffic, blocked paths, bad game-piece positions, or partner interference. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
+    st.subheader("Current readiness")
+    st.caption("Model readiness targets change with team history and competition week. Turn this off when you have measured current-robot data.")
+    auto_maturity = st.toggle("Use model readiness targets", True, help="On uses historical team execution plus competition week. Off lets you enter measured current-robot values.")
     refresh = st.button("Refresh live data", use_container_width=True)
 
 @st.cache_data(ttl=900, show_spinner=False)
@@ -75,6 +73,29 @@ else:
 tranche_data = live.get("profile")
 tranche = tranche_data.get("tranche") if tranche_data else None
 trajectory = tranche_data.get("trajectory") if tranche_data else None
+
+_READINESS={"T1":("Contested",92,96,90),"T2":("Integrated",88,94,85),"T3":("Integrated",82,92,78),"T4":("Reliable",72,88,68),"T5":("Reliable",58,82,55),"T6":("Exists",40,72,40)}
+primary_gate,auto_reliability,robot_reliability,cpr=_READINESS.get(tranche,("Reliable",60,85,60))
+week=max(1,min(8,event_week))
+auto_reliability=min(99,auto_reliability+(week-1)*2)
+robot_reliability=min(99,robot_reliability+(week-1))
+cpr=min(96,cpr+(week-1)*2)
+gates=["Exists","Reliable","Integrated","Contested","Optimized"]
+advance=(1 if week>=4 else 0)+(1 if week>=7 else 0)
+primary_gate=gates[min(4,gates.index(primary_gate)+advance)]
+with st.sidebar:
+    if auto_maturity:
+        st.write(f"**Primary scoring readiness:** {primary_gate}")
+        st.write(f"**Autonomous target:** ≥{auto_reliability}%")
+        st.write(f"**Match reliability target:** ≥{robot_reliability}%")
+        st.write(f"**Contested retention target:** ≥{cpr}%")
+        st.caption("Readiness targets—not measurements of the current robot.")
+    else:
+        primary_gate=st.select_slider("Measured primary scoring capability",gates,value=primary_gate)
+        auto_reliability=st.slider("Measured autonomous reliability (%)",0,100,auto_reliability,5)
+        robot_reliability=st.slider("Measured match reliability (%)",0,100,robot_reliability,5)
+        cpr=st.slider("Measured contested retention (%)",0,100,cpr,5)
+
 
 team_name = live.get("team_name")
 if team_name:
