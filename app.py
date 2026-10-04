@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.4 · Deploy 2026.10.04.21 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.4 · Deploy 2026.10.04.22 · live competition data · team-history + week-aware planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -23,22 +23,6 @@ GAME_OPTIONS = {
         2019: "Turning Point", 2018: "In The Zone", 2017: "Starstruck",
     },
 }
-
-TRANCHE_HELP = """
-**Team tranche** is Model 5.3's estimate of a team's demonstrated execution capacity entering the selected season.
-It is not a permanent ranking or a judgment of the students. The model uses the tranche to recommend an
-appropriate level of design risk, complexity, schedule, autonomous development, and practice.
-
-- **T1 — Championship Elite:** consistent championship-level execution; can pursue marginal advantages and higher design risk.
-- **T2 — Championship Contender:** regular event-winning/top-alliance performance with credible championship upside.
-- **T3 — Regional Contender:** regular playoff/first-pick caliber; occasional event winner.
-- **T4 — Emerging Competitor:** playoff-capable and improving, but qualification performance or execution is still inconsistent.
-- **T5 — Developing:** sporadic playoff success with meaningful reliability/capability gaps.
-- **T6 — Foundation:** rookie/rebuilding or establishing the fundamentals of a reliable competition robot.
-
-The arrow shows trajectory: **↑ Rising**, **→ Stable**, **↓ Declining**. Tranches should be calculated using
-information available *before* the selected season so the recommendation does not use hindsight.
-"""
 
 with st.sidebar:
     st.header("Team & game")
@@ -103,7 +87,7 @@ if team_name:
 st.caption(f"{program} · {season} {game_name}")
 
 if not tranche:
-    st.error("Tranche unavailable — the live historical data did not provide enough information to classify this team. No robot recommendation will be generated from a guessed default.")
+    st.error("Team history unavailable — the live competition sources did not provide enough prior-season information to create a reliable recommendation.")
     st.markdown("### Data diagnostics")
     if live.get("sources"):
         st.write("**Sources reached:** " + ", ".join(live["sources"]))
@@ -113,15 +97,15 @@ if not tranche:
         for warning in live["warnings"]:
             st.warning(warning)
     else:
-        st.warning("No classifier result was returned. Try Refresh live data. If this continues, the historical API response needs to be inspected.")
-    st.info("Automatic recommendations require usable historical competition data before the selected season. FRC uses Statbotics + The Blue Alliance; FTC uses FTCScout QuickStats. The app will not silently guess a backend team tier when history is missing.")
+        st.warning("No team-history result was returned. Try Refresh live data. If this continues, one of the historical competition sources may be unavailable or may not contain prior-season results for this team.")
+    st.info("Recommendations use only competition history available before the selected season. FRC uses Statbotics + The Blue Alliance; FTC uses FTCScout. When prior history is genuinely unavailable, the app will say so rather than inventing past performance.")
     st.stop()
 
 tranche_note = f"Auto-classified from {tranche_data['source']} using only seasons before {season}."
 result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
 
 c1,c2,c3 = st.columns(3)
-c1.metric("Competition week", f"Week {event_week}", help="The selected event week. The backend still uses the team’s hidden execution tranche plus season stage to adjust recommendations.")
+c1.metric("Competition week", f"Week {event_week}", help="The selected competition week. Later weeks raise expected scoring throughput, autonomous maturity, reliability, and development readiness based on the team's historical execution.")
 c2.metric("Reliability", f"{robot_reliability}%", help="How often the robot completes a full match without a major robot-caused problem. Example: 19 successful full matches out of 20 = 95%.")
 c3.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
 
@@ -132,25 +116,25 @@ st.subheader("Recommended robot specification")
 st.caption(derivation_text(program, season, tranche))
 
 m1, m2 = st.columns(2)
-m1.metric("Target autonomous score", targets["auto"], help="Model target derived from game scoring economics, autonomous leverage, team tranche, and historical season-to-championship compression. Not an official benchmark.")
-m2.metric("Target teleop score", targets["teleop"], help="Model target derived from the selected game, competition week, sustainable scoring throughput, hidden team-history rating, and historical progression. Later competition weeks intentionally have higher targets.")
+m1.metric("Target autonomous score", targets["auto"], help="Recommended autonomous contribution for this game, team history, and competition week. It is a planning target, not an official FIRST benchmark.")
+m2.metric("Target teleop score", targets["teleop"], help="Recommended teleop contribution based on this game's scoring economics, the team's historical execution, and the selected competition week. Later weeks intentionally expect greater maturity.")
 st.caption(targets.get("week_note",""))
 
 st.markdown("### Recommended robot feature set")
 f1, f2, f3 = st.columns(3)
 with f1:
     st.markdown("#### Must Have")
-    st.caption("Core features to protect first.")
+    st.caption("Highest-priority capabilities for this team's expected execution level in the selected game.")
     for x in features["must"]:
         st.markdown(f"- **{x}**")
 with f2:
     st.markdown("#### Should Have")
-    st.caption("Add after core capabilities are reliable and integrated.")
+    st.caption("High-value capabilities to add as the core robot becomes reliable and integrated.")
     for x in features["should"]:
         st.markdown(f"- {x}")
 with f3:
     st.markdown("#### Only If Mature")
-    st.caption("Consider these after autonomous, reliability, and driver practice are in a strong position.")
+    st.caption("Additional capabilities that become attractive when the core robot, autonomous routines, and driver practice are mature.")
     for x in features["optional"]:
         st.markdown(f"- {x}")
 
@@ -161,7 +145,7 @@ st.write("**Throughput target:** " + targets["rate"])
 st.markdown("### Recommended lower priorities")
 st.caption("Capabilities to sequence later in the build unless testing shows they add more match value than the current priorities.")
 for x in targets["avoid"]:
-    st.error(x)
+    st.info(x)
 
 st.divider()
 st.subheader("Team recommendations")
@@ -174,7 +158,7 @@ with l:
         st.markdown(f"- {x}")
     st.info(result["maturity_action"])
 with r:
-    st.markdown("#### Do less of")
+    st.markdown("#### Lower-priority development")
     for x in result["avoid"]:
         st.markdown(f"- {x}")
     st.success(result["event_target"])
@@ -227,4 +211,4 @@ with b:
         st.markdown(f"- ⚠️ {warning}")
 
 with st.expander("API configuration"):
-    st.write("Statbotics and FTCScout are queried directly. The Blue Alliance requires TBA_AUTH_KEY. RobotEvents requires ROBOTEVENTS_TOKEN. Missing credentialed sources degrade gracefully.")
+    st.write("Statbotics and FTCScout are queried directly without local API credentials. The Blue Alliance requires TBA_AUTH_KEY. VEX remains supported by the backend through RobotEvents but is not exposed in the current public UI. Missing optional sources degrade gracefully.")
