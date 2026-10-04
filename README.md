@@ -147,3 +147,39 @@ Streamlit will print a local URL, normally `http://localhost:8501`.
 - Users can enter program, season, team, next event week, primary capability maturity, autonomous reliability, match reliability, and CPR.
 - The app generates priorities, maturity-gate guidance, work to avoid, an event objective, and a recommended development-effort allocation.
 - Live TBA/Statbotics/FTCScout/RobotEvents ingestion is a planned next step.
+
+
+## Live data and manual connections
+
+The Team Advisor now includes live adapters / official links for the sources used in Model 5.3:
+
+- **FRC:** Statbotics (public live API), The Blue Alliance API v3, and official FIRST current/archive game materials.
+- **FTC:** FTCScout public API, official FIRST FTC Event Results, and official current/archive Competition Manual materials.
+- **VEX V5:** RobotEvents API v2 plus official VEX competition/manual pages.
+
+### Optional API credentials
+
+Statbotics and FTCScout do not require local credentials for the calls used by V1.
+
+For full FRC data, create a TBA Read API key and set:
+
+```powershell
+$env:TBA_AUTH_KEY="your-key"
+```
+
+For VEX RobotEvents, create an API token and set:
+
+```powershell
+$env:ROBOTEVENTS_TOKEN="your-token"
+```
+
+Set these variables in the same PowerShell session before running `streamlit run app.py`. Do not commit API keys to this repository.
+
+### World Championship planning
+
+The UI includes a **Team plans to attend World Championship** toggle.
+
+- **Off:** the advisor generates the first-event plan.
+- **On:** the advisor keeps the first-event plan and adds a separate **World Championship delta plan**: upgrades, maturity targets, autonomous expansion, CPR/reliability targets, and a guardrail against destabilizing a proven robot with late features.
+
+The Worlds output is intentionally expressed as deltas from the first-event configuration rather than as a second independent robot design.
