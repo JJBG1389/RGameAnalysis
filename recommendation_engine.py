@@ -1,4 +1,4 @@
-TRANCHE_LABELS={"T1":"Championship Elite","T2":"Championship Contender","T3":"Regional Contender","T4":"Emerging Competitor","T5":"Developing","T6":"Foundation"}
+TRANCHE_LABELS={"T1":"Championship Elite","T2":"Championship Contender","T3":"Regional Contender","T4":"Emerging Competitor","T5":"Developing","T6":"Foundation"}\nTRANCHE_SHARES={"T1":5,"T2":10,"T3":20,"T4":25,"T5":25,"T6":15}
 TRAJECTORIES=["Rising","Stable","Declining"]; GATES=["Exists","Reliable","Integrated","Contested","Optimized"]
 def season_stage(w):
     if w<=1:return "G4","Event 1"
