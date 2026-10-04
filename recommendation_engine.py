@@ -81,13 +81,25 @@ def robot_features(program, season, tranche):
             "optional": ["Secondary scoring capability", "High-complexity mechanism for marginal scoring flexibility"],
         }
     must=list(base["must"]); should=list(base["should"]); optional=list(base["optional"])
-    if tranche in ("T5","T6"):
-        # Lower-TEC teams should protect completion and practice time.
-        optional = should[2:] + optional
-        should = should[:2]
-    elif tranche=="T4" and len(should)>3:
-        optional = should[3:] + optional
-        should = should[:3]
+    if tranche in ("T1","T2"):
+        # Proven teams can usually carry more simultaneous game capability.
+        promote=should[:2]
+        must=list(dict.fromkeys(must+promote))
+        should=list(dict.fromkeys(should[2:]+optional[:1]))
+        optional=optional[1:] if len(optional)>1 else optional
+    elif tranche=="T4":
+        optional=list(dict.fromkeys(should[2:]+optional))
+        should=should[:2]
+        must=must[:4]
+    elif tranche=="T5":
+        optional=list(dict.fromkeys(must[3:]+should[1:]+optional))
+        must=must[:3]
+        should=should[:1]
+    elif tranche=="T6":
+        # Rookie/foundation: finish a robust minimum competitive robot early.
+        optional=list(dict.fromkeys(must[2:]+should+optional))
+        must=must[:2]
+        should=["Repeatable autonomous contribution"]
     return {"must":must,"should":should,"optional":optional}
 
 def worlds_feature_delta(program, season, tranche):
