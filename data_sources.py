@@ -2,7 +2,23 @@ import os
 from datetime import datetime, timezone
 import requests
 
+try:
+    import streamlit as st
+except ImportError:
+    st = None
+
 TIMEOUT = 12
+
+def _secret(name):
+    """Read a credential from Streamlit Cloud secrets first, then the OS environment."""
+    if st is not None:
+        try:
+            value = st.secrets.get(name)
+            if value:
+                return str(value).strip()
+        except Exception:
+            pass
+    return os.getenv(name, "").strip()
 MANUAL_SOURCES = {
     "FRC": {"current": "https://www.firstinspires.org/programs/frc/game-and-season", "archive": "https://www.firstinspires.org/resources/library/frc/archived-games"},
     "FTC": {"current": "https://ftc-resources.firstinspires.org/ftc/game", "archive_template": "https://ftc-resources.firstinspires.org/ftc/archive/{year}/game"},
@@ -16,13 +32,13 @@ def manual_links(program,season):
     return {"Official current competition page":MANUAL_SOURCES["VEX"]["current"],"Official current manual":MANUAL_SOURCES["VEX"]["manual"]}
 def statbotics_team_year(team,year): return _get_json(f"https://api.statbotics.io/v3/team_year/{int(team)}/{int(year)}")
 def tba_team_year(team,year):
-    key=os.getenv("TBA_AUTH_KEY","").strip()
+    key=_secret("TBA_AUTH_KEY")
     if not key:return None,"TBA_AUTH_KEY not configured"
     return _get_json(f"https://www.thebluealliance.com/api/v3/team/frc{int(team)}/events/{int(year)}/statuses",headers={"X-TBA-Auth-Key":key}),None
 def ftcscout_team(team): return _get_json(f"https://api.ftcscout.org/rest/v1/teams/{int(team)}")
 def first_ftc_results_link(season): return f"https://ftc-events.firstinspires.org/{int(season)-1}/"
 def robotevents_team(team):
-    token=os.getenv("ROBOTEVENTS_TOKEN","").strip()
+    token=_secret("ROBOTEVENTS_TOKEN")
     if not token:return None,"ROBOTEVENTS_TOKEN not configured"
     return _get_json("https://www.robotevents.com/api/v2/teams",headers={"Authorization":f"Bearer {token}"},params={"number[]":team}),None
 def infer_frc_profile(team,season):
