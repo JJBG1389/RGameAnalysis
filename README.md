@@ -105,3 +105,45 @@ See:
 8. Report prediction errors explicitly instead of rewriting prior predictions.
 
 The long-term objective is a system that can read a new game at kickoff, predict likely competitive equilibria, recommend appropriate robot architectures for different team capabilities, identify the highest-value experiments, and update those recommendations as the season evolves.
+
+
+## Run the Team Advisor locally
+
+The repository includes a Streamlit V1 front end.
+
+```bash
+git clone https://github.com/JJBG1389/RGameAnalysis.git
+cd RGameAnalysis
+python -m venv .venv
+```
+
+Activate the environment:
+
+**Windows PowerShell**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+**macOS / Linux**
+
+```bash
+source .venv/bin/activate
+```
+
+Then install and run:
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Streamlit will print a local URL, normally `http://localhost:8501`.
+
+### V1 behavior
+
+- FRC 6964 has a built-in provisional **T4 ↑** demo profile.
+- Other teams can be assigned a provisional tranche and trajectory manually.
+- Users can enter program, season, team, next event week, primary capability maturity, autonomous reliability, match reliability, and CPR.
+- The app generates priorities, maturity-gate guidance, work to avoid, an event objective, and a recommended development-effort allocation.
+- Live TBA/Statbotics/FTCScout/RobotEvents ingestion is a planned next step.
