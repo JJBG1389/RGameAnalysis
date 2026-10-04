@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.4 · Deploy 2026.10.04.14 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.4 · Deploy 2026.10.04.15 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -58,7 +58,7 @@ with st.sidebar:
     refresh = st.button("Refresh live data", use_container_width=True)
 
 @st.cache_data(ttl=900, show_spinner=False)
-def get_live(p, t, s):
+def get_live(p, t, s, cache_version):
     return live_snapshot(p, t, s)
 
 if refresh:
@@ -66,7 +66,7 @@ if refresh:
 
 if team.strip():
     with st.spinner("Checking live competition sources…"):
-        live = get_live(program, team.strip(), season, "5.4.14")
+        live = get_live(program, team.strip(), season, "5.4.15")
 else:
     live = {"profile": None, "manuals": {}, "sources": [], "warnings": ["Enter a team number to query live team data."]}
 
