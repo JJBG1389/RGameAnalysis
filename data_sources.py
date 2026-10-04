@@ -89,6 +89,31 @@ def _tranche_from_score(score):
     return "T6"
 
 def ftcscout_team(team): return _get_json(f"https://api.ftcscout.org/rest/v1/teams/{int(team)}")
+def ftcscout_quick_stats(team,season):
+    return _get_json(f"https://api.ftcscout.org/rest/v1/teams/{int(team)}/quick-stats",params={"season":int(season)})
+
+def infer_ftc_profile(team,season):
+    """Rolling three-season FTC execution capacity from FTCScout QuickStats."""
+    rows=[]; evidence=[]
+    for year in range(int(season)-3,int(season)):
+        try:
+            q=ftcscout_quick_stats(team,year)
+            count=int(q.get("count") or 0)
+            total=q.get("tot") or {}; rank=total.get("rank")
+            if rank is None or count<=1: continue
+            pct=100*(1-(int(rank)-1)/(count-1))
+            rows.append({"year":year,"percentile":pct,"rank":int(rank),"count":count})
+            evidence.append(f"FTCScout {year}: total OPR rank {rank} of {count} ({pct:.1f}th percentile)")
+        except Exception as exc:
+            evidence.append(f"FTCScout {year}: unavailable ({type(exc).__name__})")
+    if not rows:return None
+    composite=sum(x["percentile"] for x in rows)/len(rows)
+    tranche=_tranche_from_score(composite)
+    if len(rows)>=2 and rows[-1]["percentile"]>=rows[0]["percentile"]+5: trajectory="Rising"
+    elif len(rows)>=2 and rows[-1]["percentile"]<=rows[0]["percentile"]-5: trajectory="Declining"
+    else: trajectory="Stable"
+    return {"tranche":tranche,"trajectory":trajectory,"source":"FTCScout rolling 3-year QuickStats","composite":composite,"ftcscout_score":composite,"evidence":evidence,"history":[(x["year"],x["percentile"]) for x in rows]}
+
 def first_ftc_results_link(season): return f"https://ftc-events.firstinspires.org/{int(season)-1}/"
 def robotevents_team(team):
     token=_secret("ROBOTEVENTS_TOKEN")
