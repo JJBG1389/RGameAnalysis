@@ -16,6 +16,9 @@ def validate_output(program,year,tier,week):
     assert t and t.get("auto") and t.get("teleop")
     assert "not yet encoded" not in t["auto"].lower(),f"{program} {year} missing auto targets"
     assert "not yet encoded" not in t["teleop"].lower(),f"{program} {year} missing teleop targets"
+    import re
+    cycle_numbers=re.findall(r"\d+(?:\.\d+)?",str(t.get("cycles",""))+" "+str(t.get("rate","")))
+    assert cycle_numbers,f"{program} {year} has no numeric match-cycle/rate target"
     f=robot_features(program,year,tier)
     assert f["must"],f"{program} {year} missing features"
     generic={"Reliable drivetrain","One high-value primary scoring mechanism","Repeatable autonomous contribution","Tolerant game-piece acquisition"}
