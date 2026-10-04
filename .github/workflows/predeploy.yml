@@ -33,3 +33,5 @@ jobs:
               assert performance_targets("FRC",2025,t)["auto"]
           print("offline model checks OK")
           PY
+      - name: FRC historical week scoring regression
+        run: python tests/frc_week_scoring_regression.py
