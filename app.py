@@ -90,9 +90,9 @@ result = recommend(program, season, team.strip(), event_week, tranche, trajector
 st.caption(f"{program} · {season} {game_name}")
 c1,c2,c3,c4 = st.columns(4)
 c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="T1 Elite ~2%; T2 Championship Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. These are current model policy bands; future versions will calculate empirical shares by program/season.")
-c2.metric("First-event stage", result["stage_code"])
-c3.metric("Reliability", f"{robot_reliability}%")
-c4.metric("CPR", f"{cpr}%")
+c2.metric("First-event stage", result["stage_code"], help="Season-development stage used by Model 5.3. G4 means Event 1: the robot has reached competition, so the model shifts from build/prototype decisions toward qualification consistency, autonomous reliability, pit turnaround, scouting feedback, and measured match performance. G1=Kickoff, G2=Prototype, G3=Integration, G4=Event 1, G5=Event 2/qualification, G6=Championship/late season.")
+c3.metric("Reliability", f"{robot_reliability}%", help="Full-match robot reliability: the percentage of matches or full-match simulations completed without a robot-caused major failure that materially reduces scoring. Calculate as successful full matches ÷ total full matches × 100. Include mechanical, electrical, software, jam, disconnect, and mechanism failures; do not count normal driver misses as robot failures.")
+c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention. CPR = performance under realistic disruption ÷ nominal uncontested performance × 100. Example: if the robot normally contributes 100 points but averages 78 under defense/traffic/starvation, CPR = 78%. Derive it from defended practice or match data compared with clean-cycle performance.")
 st.caption(tranche_note)
 
 with st.expander("What does the team tranche mean?", expanded=True):
