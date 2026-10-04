@@ -98,10 +98,48 @@ st.caption(tranche_note)
 with st.expander("What does the team tranche mean?", expanded=True):
     st.markdown(TRANCHE_HELP)
 
-st.subheader("First-event recommendation")
+features = robot_features(program, season, tranche)
+targets = performance_targets(program, season, tranche)
+
+st.subheader("Recommended robot specification")
+st.caption(derivation_text(program, season, tranche))
+
+m1, m2 = st.columns(2)
+m1.metric("Target autonomous score", targets["auto"], help="Model target derived from game scoring economics, autonomous leverage, team tranche, and historical season-to-championship compression. Not an official benchmark.")
+m2.metric("Target teleop score", targets["teleop"], help="Model target derived from sustainable scoring throughput, team tranche, and historical progression. Not an official benchmark.")
+
+st.markdown("### Recommended robot feature set")
+f1, f2, f3 = st.columns(3)
+with f1:
+    st.markdown("#### Must Have")
+    st.caption("Core features to protect first.")
+    for x in features["must"]:
+        st.markdown(f"- **{x}**")
+with f2:
+    st.markdown("#### Should Have")
+    st.caption("Add after core capabilities are reliable and integrated.")
+    for x in features["should"]:
+        st.markdown(f"- {x}")
+with f3:
+    st.markdown("#### Only If Mature")
+    st.caption("Do not let these delay autonomous, reliability, or driver practice.")
+    for x in features["optional"]:
+        st.markdown(f"- {x}")
+
+st.markdown("### Match-cycle targets")
+st.write("**Scoring loop:** " + targets["cycles"])
+st.write("**Throughput target:** " + targets["rate"])
+
+st.markdown("### Do Not Pursue")
+st.caption("Game aspects that should not consume meaningful design/build time for this tranche unless new evidence changes the trade.")
+for x in targets["avoid"]:
+    st.error(x)
+
+st.divider()
+st.subheader("Team execution recommendations")
 st.markdown(f"### {result['headline']}")
 st.write(result["summary"])
-l,r = st.columns(2)
+l, r = st.columns(2)
 with l:
     st.markdown("#### Highest-value work")
     for x in result["priorities"]:
@@ -112,25 +150,6 @@ with r:
     for x in result["avoid"]:
         st.markdown(f"- {x}")
     st.success(result["event_target"])
-
-features = robot_features(program, season, tranche)
-st.markdown("### Recommended robot feature set")
-f1,f2,f3 = st.columns(3)
-with f1:
-    st.markdown("#### Must Have")
-    st.caption("Core features the model recommends protecting first.")
-    for x in features["must"]:
-        st.markdown(f"- **{x}**")
-with f2:
-    st.markdown("#### Should Have")
-    st.caption("Add after the core capabilities are reliable and integrated.")
-    for x in features["should"]:
-        st.markdown(f"- {x}")
-with f3:
-    st.markdown("#### Only If Mature")
-    st.caption("Do not let these delay autonomous, reliability, or driver practice.")
-    for x in features["optional"]:
-        st.markdown(f"- {x}")
 
 st.markdown("#### Development allocation")
 st.bar_chart(result["allocation"], horizontal=True)
