@@ -1,0 +1,80 @@
+import os
+from datetime import datetime, timezone
+import requests
+
+TIMEOUT = 12
+MANUAL_SOURCES = {
+    "FRC": {"current": "https://www.firstinspires.org/programs/frc/game-and-season", "archive": "https://www.firstinspires.org/resources/library/frc/archived-games"},
+    "FTC": {"current": "https://ftc-resources.firstinspires.org/ftc/game", "archive_template": "https://ftc-resources.firstinspires.org/ftc/archive/{year}/game"},
+    "VEX": {"current": "https://www.vexrobotics.com/v5/competition", "manual": "https://www.vexrobotics.com/override-manual"},
+}
+def _get_json(url, headers=None, params=None):
+    r=requests.get(url,headers=headers or {},params=params or {},timeout=TIMEOUT); r.raise_for_status(); return r.json()
+def manual_links(program,season):
+    if program=="FTC": return {"Official current materials":MANUAL_SOURCES["FTC"]["current"],"Official season archive":MANUAL_SOURCES["FTC"]["archive_template"].format(year=season)}
+    if program=="FRC": return {"Official current materials":MANUAL_SOURCES["FRC"]["current"],"Official game archive":MANUAL_SOURCES["FRC"]["archive"]}
+    return {"Official current competition page":MANUAL_SOURCES["VEX"]["current"],"Official current manual":MANUAL_SOURCES["VEX"]["manual"]}
+def statbotics_team_year(team,year): return _get_json(f"https://api.statbotics.io/v3/team_year/{int(team)}/{int(year)}")
+def tba_team_year(team,year):
+    key=os.getenv("TBA_AUTH_KEY","").strip()
+    if not key:return None,"TBA_AUTH_KEY not configured"
+    return _get_json(f"https://www.thebluealliance.com/api/v3/team/frc{int(team)}/events/{int(year)}/statuses",headers={"X-TBA-Auth-Key":key}),None
+def ftcscout_team(team): return _get_json(f"https://api.ftcscout.org/rest/v1/teams/{int(team)}")
+def first_ftc_results_link(season): return f"https://ftc-events.firstinspires.org/{int(season)-1}/"
+def robotevents_team(team):
+    token=os.getenv("ROBOTEVENTS_TOKEN","").strip()
+    if not token:return None,"ROBOTEVENTS_TOKEN not configured"
+    return _get_json("https://www.robotevents.com/api/v2/teams",headers={"Authorization":f"Bearer {token}"},params={"number[]":team}),None
+def infer_frc_profile(team,season):
+    rows=[]
+    for year in range(max(2002,int(season)-3),int(season)):
+        try: rows.append((year,statbotics_team_year(team,year)))
+        except Exception: pass
+    if not rows:return None
+    latest_year,latest=rows[-1]; epa=latest.get("epa",{}) if isinstance(latest,dict) else {}; pct=None
+    if isinstance(epa,dict):
+        total=epa.get("total_points",{})
+        if isinstance(total,dict):pct=total.get("percentile")
+        if pct is None:pct=epa.get("percentile")
+    if pct is not None:
+        pct=float(pct); pct=pct*100 if pct<=1 else pct
+    if pct is None:tranche="T4"
+    elif pct>=98:tranche="T1"
+    elif pct>=90:tranche="T2"
+    elif pct>=70:tranche="T3"
+    elif pct>=40:tranche="T4"
+    elif pct>=15:tranche="T5"
+    else:tranche="T6"
+    pcts=[]
+    for _,r in rows:
+        e=r.get("epa",{}) if isinstance(r,dict) else {}; p=None
+        if isinstance(e,dict):
+            tp=e.get("total_points",{})
+            if isinstance(tp,dict):p=tp.get("percentile")
+            if p is None:p=e.get("percentile")
+        if p is not None:
+            p=float(p); pcts.append(p*100 if p<=1 else p)
+    trajectory="Rising" if len(pcts)>=2 and pcts[-1]>=pcts[0]+5 else ("Declining" if len(pcts)>=2 and pcts[-1]<=pcts[0]-5 else "Stable")
+    return {"tranche":tranche,"trajectory":trajectory,"source":"Statbotics","latest_history_year":latest_year,"percentile":pct}
+def live_snapshot(program,team,season):
+    out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None}
+    if program=="FRC":
+        try:
+            out["profile"]=infer_frc_profile(team,season); out["sources"].append("Statbotics live")
+        except Exception as exc:out["warnings"].append(f"Statbotics unavailable: {exc}")
+        try:
+            data,err=tba_team_year(team,season)
+            if err:out["warnings"].append(err)
+            else:out["tba"]=data; out["sources"].append("The Blue Alliance live")
+        except Exception as exc:out["warnings"].append(f"The Blue Alliance unavailable: {exc}")
+    elif program=="FTC":
+        try:out["ftcscout"]=ftcscout_team(team); out["sources"].append("FTCScout live")
+        except Exception as exc:out["warnings"].append(f"FTCScout unavailable: {exc}")
+        out["first_events"]=first_ftc_results_link(season); out["sources"].append("FIRST FTC Events link")
+    else:
+        try:
+            data,err=robotevents_team(team)
+            if err:out["warnings"].append(err)
+            else:out["robotevents"]=data; out["sources"].append("RobotEvents live")
+        except Exception as exc:out["warnings"].append(f"RobotEvents unavailable: {exc}")
+    return out
