@@ -76,30 +76,43 @@ def robotevents_team(team):
     token=_secret("ROBOTEVENTS_TOKEN")
     if not token:return None,"ROBOTEVENTS_TOKEN not configured"
     return _get_json("https://www.robotevents.com/api/v2/teams",headers={"Authorization":f"Bearer {token}"},params={"number[]":team}),None
+def _statbotics_rank_fields(row):
+    """Read Statbotics v3 public API rank fields from its nested response."""
+    epa=row.get("epa",{}) if isinstance(row,dict) else {}
+    ranks=epa.get("ranks",{}) if isinstance(epa,dict) else {}
+    total=ranks.get("total",{}) if isinstance(ranks,dict) else {}
+    pct=total.get("percentile") if isinstance(total,dict) else None
+    rank=total.get("rank") if isinstance(total,dict) else None
+    count=total.get("team_count") if isinstance(total,dict) else None
+    return pct,rank,count
+
 def infer_frc_profile(team,season):
     """Composite pre-season FRC Team Execution Capacity from Statbotics + TBA."""
     years=range(max(2002,int(season)-3),int(season)); sb=[]; tba_rows=[]; evidence=[]
     for year in years:
         try:
-            row=statbotics_team_year(team,year); pct=row.get("total_epa_percentile")
+            row=statbotics_team_year(team,year)
+            pct,rank,count=_statbotics_rank_fields(row)
             if pct is not None:
                 pct=float(pct);pct=pct*100 if pct<=1 else pct
-                sb.append({"year":year,"percentile":pct,"rank":row.get("total_epa_rank"),"team_count":row.get("total_team_count")})
-                evidence.append(f'Statbotics {year}: {pct:.1f}th EPA percentile')
-        except Exception:pass
+                sb.append({"year":year,"percentile":pct,"rank":rank,"team_count":count})
+                detail=f"Statbotics {year}: {pct:.1f}th EPA percentile"
+                if rank is not None and count is not None: detail+=f" (rank {rank} of {count})"
+                evidence.append(detail)
+        except Exception as exc:
+            evidence.append(f"Statbotics {year}: unavailable ({type(exc).__name__})")
         try:
             data,err=tba_team_year(team,year)
             if not err:
                 score,ev=_tba_year_score(data)
                 if score is not None:tba_rows.append({"year":year,"score":score})
                 evidence.extend([f"TBA {year}: {x}" for x in ev])
-        except Exception:pass
+        except Exception as exc:
+            evidence.append(f"TBA {year}: unavailable ({type(exc).__name__})")
     if not sb and not tba_rows:return None
     sb_score=sb[-1]["percentile"] if sb else None
     tba_score=tba_rows[-1]["score"] if tba_rows else None
-    # 40% EPA strength, 60% translated event execution. When one source is
-    # unavailable, use the available source and clearly expose that fact.
-    if sb_score is not None and tba_score is not None: composite=.40*sb_score+.60*tba_score;source="Statbotics + The Blue Alliance"
+    if sb_score is not None and tba_score is not None: composite=.60*sb_score+.40*tba_score;source="Statbotics + The Blue Alliance"
     elif sb_score is not None:composite=sb_score;source="Statbotics only (TBA unavailable)"
     else:composite=tba_score;source="The Blue Alliance only (Statbotics unavailable)"
     tranche=_tranche_from_score(composite)
@@ -107,7 +120,7 @@ def infer_frc_profile(team,season):
     for year in years:
         sp=next((x["percentile"] for x in sb if x["year"]==year),None)
         tp=next((x["score"] for x in tba_rows if x["year"]==year),None)
-        if sp is not None and tp is not None:history.append((year,.40*sp+.60*tp))
+        if sp is not None and tp is not None:history.append((year,.60*sp+.40*tp))
         elif sp is not None:history.append((year,sp))
         elif tp is not None:history.append((year,tp))
     if len(history)>=2 and history[-1][1]>=history[0][1]+5:trajectory="Rising"
