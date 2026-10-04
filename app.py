@@ -49,14 +49,14 @@ with st.sidebar:
     game_name = GAME_OPTIONS[program][season]
     team = st.text_input("Team number", "6964" if program == "FRC" else "")
     event_week = st.slider("First event competition week", 1, 8, 1)
-    worlds_plan = st.toggle("Team plans to attend World Championship", False, help="Adds a separate set of feature and development deltas for peaking again at Worlds.")
+    worlds_plan = st.toggle("Team plans to attend World Championship", False, help="Turn this on if the team expects to keep developing for World Championship-level play. The tool gives a first-event plan plus a later list of improvements for Worlds. It does not assume the team should rebuild the robot.")
 
     st.divider()
     st.subheader("Current maturity")
-    primary_gate = st.select_slider("Primary scoring capability", ["Exists","Reliable","Integrated","Contested","Optimized"], value="Integrated", help="Exists=demonstrated; Reliable=repeats; Integrated=works on full robot; Contested=works under disruption; Optimized=cycle time tuned.")
-    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5, help="Percent of full autonomous trials or matches where intended actions complete without robot-caused failure.")
-    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5, help="Percent of matches completed without a robot-caused major failure that materially reduces scoring.")
-    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5, help="CPR is contested performance divided by nominal performance under defense, traffic, starvation, blocked routes, and partner interference.")
+    primary_gate = st.select_slider("Primary scoring capability", ["Exists","Reliable","Integrated","Contested","Optimized"], value="Integrated", help="How mature is the robot’s MAIN scoring system? Exists = worked once. Reliable = works repeatedly. Integrated = works on the complete robot. Contested = still works with defense, traffic, or imperfect game pieces. Optimized = all of those are true and the team is making it faster. Pick what the robot can prove today, not what you hope it will do.")
+    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5, help="How often the FULL autonomous routine works correctly from start to finish. Example: 18 successful runs out of 20 = 90%. A run fails if the robot misses an important action, loses localization, jams, hits something it should not, or does not finish the planned routine.")
+    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5, help="How often the robot completes a full match without a major robot problem. Example: 19 good full matches out of 20 = 95%. Count broken mechanisms, electrical problems, software crashes, disconnects, and serious jams. Normal driver misses do not count.")
+    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5, help="How much normal scoring the robot keeps when the match gets difficult. Compare average scoring in clean practice with scoring under defense, traffic, blocked paths, bad game-piece positions, or partner interference. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
     refresh = st.button("Refresh live data", use_container_width=True)
 
 @st.cache_data(ttl=900, show_spinner=False)
@@ -82,7 +82,7 @@ else:
     st.sidebar.subheader("Provisional team tranche")
     st.sidebar.caption("Automatic tranche calculation is not yet available from the connected source for this program/team.")
     tranche = st.sidebar.selectbox("Team tranche", list(TRANCHE_LABELS), index=3, help="T1 Elite ~2%; T2 Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. Current model policy bands, not yet measured population shares.")
-    trajectory = st.sidebar.selectbox("Trajectory", TRAJECTORIES, index=0, help="Year-over-year direction based on pre-season historical performance: Rising, Stable, or Declining.")
+    trajectory = st.sidebar.selectbox("Trajectory", TRAJECTORIES, index=0, help="Whether the team’s results have been getting better, staying about the same, or getting worse across recent seasons. The automatic version compares historical data from TBA/Statbotics, FTCScout/FIRST, or RobotEvents.")
     tranche_note = "Manual provisional tranche."
 
 result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
@@ -90,7 +90,7 @@ result = recommend(program, season, team.strip(), event_week, tranche, trajector
 st.caption(f"{program} · {season} {game_name}")
 c1,c2,c3,c4 = st.columns(4)
 c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="T1 Elite ~2%; T2 Championship Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. These are current model policy bands; future versions will calculate empirical shares by program/season.")
-c2.metric("First-event stage", result["stage_code"], help="Season-development stage used by Model 5.3. G4 means Event 1: the robot has reached competition, so the model shifts from build/prototype decisions toward qualification consistency, autonomous reliability, pit turnaround, scouting feedback, and measured match performance. G1=Kickoff, G2=Prototype, G3=Integration, G4=Event 1, G5=Event 2/qualification, G6=Championship/late season.")
+c2.metric("First-event stage", "Event 1", help="The team is preparing for its first competition. Focus on reliability, autonomous routines, full-match practice, quick pit repairs, and reducing mistakes. Later events use real match data to change the advice.")
 c3.metric("Reliability", f"{robot_reliability}%", help="Full-match robot reliability: the percentage of matches or full-match simulations completed without a robot-caused major failure that materially reduces scoring. Calculate as successful full matches ÷ total full matches × 100. Include mechanical, electrical, software, jam, disconnect, and mechanism failures; do not count normal driver misses as robot failures.")
 c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention. CPR = performance under realistic disruption ÷ nominal uncontested performance × 100. Example: if the robot normally contributes 100 points but averages 78 under defense/traffic/starvation, CPR = 78%. Derive it from defended practice or match data compared with clean-cycle performance.")
 st.caption(tranche_note)
