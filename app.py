@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.7 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.3 · Deploy 2026.10.04.8 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -42,13 +42,13 @@ information available *before* the selected season so the recommendation does no
 
 with st.sidebar:
     st.header("Team & game")
-    program = st.selectbox("Program", ["FRC", "FTC", "VEX"])
+    program = st.selectbox("Program", ["FRC", "FTC"])
     game_labels = [f"{year} — {name}" for year, name in GAME_OPTIONS[program].items()]
     selected_game = st.selectbox("Game / season", game_labels)
     season = int(selected_game.split(" — ", 1)[0])
     game_name = GAME_OPTIONS[program][season]
     team = st.text_input("Team number", "6964" if program == "FRC" else "")
-    event_week = st.slider("First event competition week", 1, 8, 1)
+    event_week = st.slider("Competition week", 1, 8, 1, help="Select the week of the season when this event occurs. Week 1 is the team’s earliest competition period; later weeks allow the model to expect more development and real-match learning.")
     worlds_plan = st.toggle("Team plans to attend World Championship", False, help="Turn this on if the team expects to keep developing for World Championship-level play. The tool gives a first-event plan plus a later list of improvements for Worlds. It does not assume the team should rebuild the robot.")
 
     st.divider()
@@ -99,24 +99,10 @@ if not tranche:
 tranche_note = f"Auto-classified from {tranche_data['source']} using only seasons before {season}."
 result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
 
-c1,c2,c3,c4 = st.columns(4)
-c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="Calculated from earlier seasons. For FRC, Model 5.3 combines Statbotics EPA strength with The Blue Alliance qualification, alliance-selection, and playoff results. It does not use results from the selected season.")
-c2.metric("First-event stage", "Event 1", help="The team is preparing for its first competition. Focus on reliability, autonomous routines, full-match practice, quick pit repairs, and reducing mistakes.")
-c3.metric("Reliability", f"{robot_reliability}%", help="How often the robot completes a full match without a major robot-caused problem. Example: 19 successful full matches out of 20 = 95%.")
-c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
-st.caption(tranche_note)
-
-with st.expander("Why was this tranche assigned?"):
-    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. The tranche uses a rolling average of the three seasons before the selected game. Within that three-year average, Statbotics EPA strength is weighted 75% and TBA qualification ranking, alliance selection, and playoff results are weighted 25%.")
-    if tranche_data.get("composite") is not None:
-        st.metric("Composite TEC score", f"{tranche_data['composite']:.1f}/100")
-    if tranche_data.get("statbotics_score") is not None:
-        st.write(f"**Statbotics strength:** {tranche_data['statbotics_score']:.1f}/100")
-    if tranche_data.get("tba_score") is not None:
-        st.write(f"**TBA event execution:** {tranche_data['tba_score']:.1f}/100")
-    for item in tranche_data.get("evidence", []):
-        st.markdown(f"- {item}")
-    st.caption("TEC bands: T1 >=85; T2 75 to <85; T3 63 to <75; T4 48 to <63; T5 32 to <48; T6 <32.")
+c1,c2,c3 = st.columns(3)
+c1.metric("Competition week", f"Week {event_week}", help="The selected event week. The backend still uses the team’s hidden execution tranche plus season stage to adjust recommendations.")
+c2.metric("Reliability", f"{robot_reliability}%", help="How often the robot completes a full match without a major robot-caused problem. Example: 19 successful full matches out of 20 = 95%.")
+c3.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
 
 features = robot_features(program, season, tranche)
 targets = performance_targets(program, season, tranche)
@@ -156,7 +142,7 @@ for x in targets["avoid"]:
     st.error(x)
 
 st.divider()
-st.subheader("Team execution recommendations")
+st.subheader("Team recommendations")
 st.markdown(f"### {result['headline']}")
 st.write(result["summary"])
 l, r = st.columns(2)
