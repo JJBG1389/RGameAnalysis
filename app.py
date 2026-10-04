@@ -94,6 +94,12 @@ c2.metric("First-event stage", "Event 1", help="The team is preparing for its fi
 c3.metric("Reliability", f"{robot_reliability}%", help="Full-match robot reliability: the percentage of matches or full-match simulations completed without a robot-caused major failure that materially reduces scoring. Calculate as successful full matches ÷ total full matches × 100. Include mechanical, electrical, software, jam, disconnect, and mechanism failures; do not count normal driver misses as robot failures.")
 c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention. CPR = performance under realistic disruption ÷ nominal uncontested performance × 100. Example: if the robot normally contributes 100 points but averages 78 under defense/traffic/starvation, CPR = 78%. Derive it from defended practice or match data compared with clean-cycle performance.")
 st.caption(tranche_note)
+if tranche_data and tranche_data.get("evidence"):
+    with st.expander("Why was this tranche assigned?"):
+        st.write("The automatic FRC tranche uses the team's Statbotics worldwide EPA percentile from seasons before the selected game. The latest pre-season percentile sets the tranche; the change across recent seasons sets the rising/stable/declining arrow.")
+        for item in tranche_data["evidence"]:
+            st.markdown(f"- {item}")
+        st.caption("Bands: T1 >=98th percentile; T2 90 to <98; T3 75 to <90; T4 50 to <75; T5 20 to <50; T6 <20. TBA event/playoff evidence will be added as a second classifier input rather than used as a silent fallback.")
 
 with st.expander("What does the team tranche mean?", expanded=True):
     st.markdown(TRANCHE_HELP)
