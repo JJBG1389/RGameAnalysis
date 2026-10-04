@@ -30,7 +30,22 @@ def manual_links(program,season):
     if program=="FTC": return {"Official current materials":MANUAL_SOURCES["FTC"]["current"],"Official season archive":MANUAL_SOURCES["FTC"]["archive_template"].format(year=season)}
     if program=="FRC": return {"Official current materials":MANUAL_SOURCES["FRC"]["current"],"Official game archive":MANUAL_SOURCES["FRC"]["archive"]}
     return {"Official current competition page":MANUAL_SOURCES["VEX"]["current"],"Official current manual":MANUAL_SOURCES["VEX"]["manual"]}
-def statbotics_team_year(team,year): return _get_json(f"https://api.statbotics.io/v3/team_year/{int(team)}/{int(year)}")
+def statbotics_team_year(team,year):
+    urls=[
+        f"https://api.statbotics.io/v3/team_year/{int(team)}/{int(year)}",
+        f"https://api.statbotics.io/v3/team_years?team={int(team)}&year={int(year)}&limit=1",
+    ]
+    errors=[]
+    for url in urls:
+        try:
+            data=_get_json(url)
+            if isinstance(data,list):
+                if data:return data[0]
+            elif isinstance(data,dict):
+                return data
+        except Exception as exc:
+            errors.append(f"{type(exc).__name__}: {exc}")
+    raise RuntimeError("Statbotics request failed: "+" | ".join(errors))
 def tba_team_year(team,year):
     key=_secret("TBA_AUTH_KEY")
     if not key:return None,"TBA_AUTH_KEY not configured"
