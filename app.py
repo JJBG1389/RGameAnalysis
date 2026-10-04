@@ -73,36 +73,47 @@ else:
     live = {"profile": None, "manuals": {}, "sources": [], "warnings": ["Enter a team number to query live team data."]}
 
 tranche_data = live.get("profile")
-if tranche_data:
-    tranche = tranche_data["tranche"]
-    trajectory = tranche_data["trajectory"]
-    tranche_note = f"Auto-classified from {tranche_data['source']} using only seasons before {season}."
-else:
-    st.sidebar.divider()
-    st.sidebar.subheader("Provisional team tranche")
-    st.sidebar.caption("Automatic tranche calculation is not yet available from the connected source for this program/team.")
-    tranche = st.sidebar.selectbox("Team tranche", list(TRANCHE_LABELS), index=3, help="T1 Elite ~2%; T2 Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. Current model policy bands, not yet measured population shares.")
-    trajectory = st.sidebar.selectbox("Trajectory", TRAJECTORIES, index=0, help="Whether the team’s results have been getting better, staying about the same, or getting worse across recent seasons. The automatic version compares historical data from TBA/Statbotics, FTCScout/FIRST, or RobotEvents.")
-    tranche_note = "Manual provisional tranche."
-
-result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
+tranche = tranche_data.get("tranche") if tranche_data else None
+trajectory = tranche_data.get("trajectory") if tranche_data else None
 
 st.caption(f"{program} · {season} {game_name}")
-c1,c2,c3,c4 = st.columns(4)
-c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="T1 Elite ~2%; T2 Championship Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. These are current model policy bands; future versions will calculate empirical shares by program/season.")
-c2.metric("First-event stage", "Event 1", help="The team is preparing for its first competition. Focus on reliability, autonomous routines, full-match practice, quick pit repairs, and reducing mistakes. Later events use real match data to change the advice.")
-c3.metric("Reliability", f"{robot_reliability}%", help="Full-match robot reliability: the percentage of matches or full-match simulations completed without a robot-caused major failure that materially reduces scoring. Calculate as successful full matches ÷ total full matches × 100. Include mechanical, electrical, software, jam, disconnect, and mechanism failures; do not count normal driver misses as robot failures.")
-c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention. CPR = performance under realistic disruption ÷ nominal uncontested performance × 100. Example: if the robot normally contributes 100 points but averages 78 under defense/traffic/starvation, CPR = 78%. Derive it from defended practice or match data compared with clean-cycle performance.")
-st.caption(tranche_note)
-if tranche_data and tranche_data.get("evidence"):
-    with st.expander("Why was this tranche assigned?"):
-        st.write("The automatic FRC tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics is weighted 40%; TBA qualification ranking, alliance selection, and playoff results are weighted 60%. The recent composite trend sets the rising/stable/declining arrow.")
-        for item in tranche_data["evidence"]:
-            st.markdown(f"- {item}")
-        st.caption("Composite TEC bands: T1 >=90; T2 80 to <90; T3 68 to <80; T4 52 to <68; T5 35 to <52; T6 <35. The evidence below shows the historical source data used.")
 
-with st.expander("What does the team tranche mean?", expanded=True):
-    st.markdown(TRANCHE_HELP)
+if not tranche:
+    st.error("Tranche unavailable — the live historical data did not provide enough information to classify this team. No robot recommendation will be generated from a guessed default.")
+    st.markdown("### Data diagnostics")
+    if live.get("sources"):
+        st.write("**Sources reached:** " + ", ".join(live["sources"]))
+    else:
+        st.write("**Sources reached:** none")
+    if live.get("warnings"):
+        for warning in live["warnings"]:
+            st.warning(warning)
+    else:
+        st.warning("No classifier result was returned. Try Refresh live data. If this continues, the historical API response needs to be inspected.")
+    st.info("For FRC, automatic tranche classification requires usable pre-season Statbotics and/or The Blue Alliance history. The app will no longer silently assign T4 when that data is missing.")
+    st.stop()
+
+tranche_note = f"Auto-classified from {tranche_data['source']} using only seasons before {season}."
+result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
+
+c1,c2,c3,c4 = st.columns(4)
+c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="Calculated from earlier seasons. For FRC, Model 5.3 combines Statbotics EPA strength with The Blue Alliance qualification, alliance-selection, and playoff results. It does not use results from the selected season.")
+c2.metric("First-event stage", "Event 1", help="The team is preparing for its first competition. Focus on reliability, autonomous routines, full-match practice, quick pit repairs, and reducing mistakes.")
+c3.metric("Reliability", f"{robot_reliability}%", help="How often the robot completes a full match without a major robot-caused problem. Example: 19 successful full matches out of 20 = 95%.")
+c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
+st.caption(tranche_note)
+
+with st.expander("Why was this tranche assigned?"):
+    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics is weighted 40%; TBA qualification ranking, alliance selection, and playoff results are weighted 60%.")
+    if tranche_data.get("composite") is not None:
+        st.metric("Composite TEC score", f"{tranche_data['composite']:.1f}/100")
+    if tranche_data.get("statbotics_score") is not None:
+        st.write(f"**Statbotics strength:** {tranche_data['statbotics_score']:.1f}/100")
+    if tranche_data.get("tba_score") is not None:
+        st.write(f"**TBA event execution:** {tranche_data['tba_score']:.1f}/100")
+    for item in tranche_data.get("evidence", []):
+        st.markdown(f"- {item}")
+    st.caption("TEC bands: T1 >=90; T2 80 to <90; T3 68 to <80; T4 52 to <68; T5 35 to <52; T6 <35.")
 
 features = robot_features(program, season, tranche)
 targets = performance_targets(program, season, tranche)
