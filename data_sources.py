@@ -144,7 +144,7 @@ def infer_frc_profile(team,season):
     if len(history)>=2 and history[-1][1]>=history[0][1]+5:trajectory="Rising"
     elif len(history)>=2 and history[-1][1]<=history[0][1]-5:trajectory="Declining"
     else:trajectory="Stable"
-    return {"tranche":tranche,"trajectory":trajectory,"source":source,"composite":composite,"statbotics_score":sb_score,"tba_score":tba_score,"evidence":evidence,"history":history}
+    return {"tranche":tranche,"trajectory":trajectory,"source":source,"composite":composite,"statbotics_score":sb_score,"tba_score":tba_score,"evidence":evidence,"history":history,"window_years":[x[0] for x in history]}
 
 def live_snapshot(program,team,season):
     out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None,"team_name":None}
