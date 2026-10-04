@@ -1,0 +1,35 @@
+name: Pre-deploy tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile all Python
+        run: python -m compileall -q app.py data_sources.py recommendation_engine.py tests
+      - name: Import core modules
+        run: python -c "import data_sources, recommendation_engine; print('core imports OK')"
+      - name: Offline model sanity checks
+        run: |
+          python - <<'PY'
+          from recommendation_engine import recommend, robot_features, performance_targets
+          for t in ("T1","T2","T3","T4","T5","T6"):
+              r=recommend("FRC",2025,"254",1,t,"Stable","Integrated",90,95,85)
+              assert r["tranche"]==t
+              assert sum(r["allocation"].values())==100
+              assert robot_features("FRC",2025,t)["must"]
+              assert performance_targets("FRC",2025,t)["auto"]
+          print("offline model checks OK")
+          PY
