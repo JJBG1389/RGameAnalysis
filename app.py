@@ -150,7 +150,7 @@ with f2:
         st.markdown(f"- {x}")
 with f3:
     st.markdown("#### Only If Mature")
-    st.caption("Do not let these delay autonomous, reliability, or driver practice.")
+    st.caption("Consider these after autonomous, reliability, and driver practice are in a strong position.")
     for x in features["optional"]:
         st.markdown(f"- {x}")
 
@@ -158,7 +158,7 @@ st.markdown("### Match-cycle targets")
 st.write("**Scoring loop:** " + targets["cycles"])
 st.write("**Throughput target:** " + targets["rate"])
 
-st.markdown("### Do Not Pursue")
+st.markdown("### Recommended lower priorities")
 st.caption("Game aspects that should not consume meaningful design/build time for this tranche unless new evidence changes the trade.")
 for x in targets["avoid"]:
     st.error(x)
