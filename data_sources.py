@@ -119,7 +119,7 @@ def live_snapshot(program,team,season):
     out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None}
     if program=="FRC":
         try:
-            out["profile"]=infer_frc_profile(team,season); out["sources"].append("Statbotics live"); out["sources"].append("The Blue Alliance historical tranche data")
+            out["profile"]=infer_frc_profile(team,season); out["sources"].append("Statbotics live");\n            if out["profile"] and "Blue Alliance" in out["profile"].get("source",""): out["sources"].append("The Blue Alliance historical tranche data")
         except Exception as exc:out["warnings"].append(f"Statbotics unavailable: {exc}")
         try:
             data,err=tba_team_year(team,season)
