@@ -1,95 +1,48 @@
 import streamlit as st
-from recommendation_engine import recommend, TRANCHE_LABELS, TRAJECTORIES
-
-st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
-
-st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Game × Team Tranche × Season Stage × Trajectory")
-
+from recommendation_engine import recommend,worlds_delta,TRANCHE_LABELS,TRAJECTORIES
+from data_sources import live_snapshot
+st.set_page_config(page_title="RGameAnalysis Team Advisor",page_icon="🤖",layout="wide")
+st.title("RGameAnalysis Team Advisor");st.caption("Model 5.3 · live source adapters · tranche-aware first-event + Worlds planning")
 with st.sidebar:
-    st.header("Team & season")
-    program = st.selectbox("Program", ["FRC", "FTC", "VEX"])
-    season = st.number_input("Season", min_value=2010, max_value=2035, value=2027, step=1)
-    team = st.text_input("Team number", value="6964")
-    event_week = st.slider("Next competition week", 1, 8, 1)
-
-    st.divider()
-    st.subheader("Team Execution Capacity")
-    auto_profile = program == "FRC" and team.strip() == "6964"
-    if auto_profile:
-        st.info("Known demo profile: FRC 6964 is provisionally T4 ↑ based on the current Model 5.3 working classification.")
-        tranche = "T4"
-        trajectory = "Rising"
-    else:
-        st.caption("Until live data adapters are added, select a provisional team profile.")
-        tranche = st.selectbox("Team tranche", list(TRANCHE_LABELS))
-        trajectory = st.selectbox("Trajectory", TRAJECTORIES)
-
-    st.divider()
-    st.subheader("Current maturity")
-    primary_gate = st.select_slider(
-        "Primary scoring capability",
-        options=["Exists", "Reliable", "Integrated", "Contested", "Optimized"],
-        value="Integrated",
-    )
-    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5)
-    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5)
-    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5)
-
-    generate = st.button("Generate recommendation", type="primary", use_container_width=True)
-
-inputs = dict(
-    program=program,
-    season=int(season),
-    team=team.strip(),
-    event_week=event_week,
-    tranche=tranche,
-    trajectory=trajectory,
-    primary_gate=primary_gate,
-    auto_reliability=auto_reliability,
-    robot_reliability=robot_reliability,
-    cpr=cpr,
-)
-
-result = recommend(**inputs)
-
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Team profile", f"{result['tranche']} {result['trajectory_symbol']}")
-c2.metric("Season stage", result["stage_code"])
-c3.metric("Reliability", f"{robot_reliability}%")
-c4.metric("CPR", f"{cpr}%")
-
-st.subheader(result["headline"])
-st.write(result["summary"])
-
-left, right = st.columns(2)
-with left:
-    st.markdown("### Highest-value work")
-    for item in result["priorities"]:
-        st.markdown(f"- {item}")
-
-    st.markdown("### Maturity gate")
-    st.info(result["maturity_action"])
-
-with right:
-    st.markdown("### Do less of")
-    for item in result["avoid"]:
-        st.markdown(f"- {item}")
-
-    st.markdown("### Event objective")
-    st.success(result["event_target"])
-
-st.markdown("### Development allocation")
-allocation = result["allocation"]
-st.bar_chart(allocation, horizontal=True)
-
-st.markdown("### Why the model chose this")
-st.write(result["rationale"])
-
-with st.expander("Model assumptions / limitations"):
-    st.write(
-        "This V1 runs the Model 5.3 tranche, maturity, reliability, CPR, and season-stage logic locally. "
-        "It does not yet fetch live TBA, Statbotics, FTCScout, or RobotEvents data, so teams other than "
-        "the included 6964 demo profile require a provisional manual tranche. Percentages shown by the "
-        "app are user inputs, not inferred measurements."
-    )
+ st.header("Team & season");program=st.selectbox("Program",["FRC","FTC","VEX"]);season=st.number_input("Season ending year",2010,2035,2027);team=st.text_input("Team number","6964");event_week=st.slider("First event competition week",1,8,1);worlds_plan=st.toggle("Team plans to attend World Championship",False)
+ st.divider();st.subheader("Current maturity");primary_gate=st.select_slider("Primary scoring capability",["Exists","Reliable","Integrated","Contested","Optimized"],value="Integrated");auto_reliability=st.slider("Autonomous reliability (%)",0,100,80,5);robot_reliability=st.slider("Match reliability (%)",0,100,90,5);cpr=st.slider("Contested performance retention (%)",0,100,75,5);refresh=st.button("Refresh live data",use_container_width=True)
+@st.cache_data(ttl=900,show_spinner=False)
+def get_live(p,t,s):return live_snapshot(p,t,s)
+if refresh:get_live.clear()
+with st.spinner("Checking live competition sources…"):live=get_live(program,team.strip(),int(season))
+profile=live.get("profile")
+if profile:tranche=profile["tranche"];trajectory=profile["trajectory"];profile_note=f"Auto-classified from {profile['source']} using only seasons before {season}."
+else:
+ st.sidebar.divider();st.sidebar.subheader("Provisional team profile");st.sidebar.caption("Automatic classification is not yet available from the connected source for this program/team.");tranche=st.sidebar.selectbox("Team tranche",list(TRANCHE_LABELS),index=3);trajectory=st.sidebar.selectbox("Trajectory",TRAJECTORIES,index=0);profile_note="Manual provisional classification."
+result=recommend(program,int(season),team.strip(),event_week,tranche,trajectory,primary_gate,auto_reliability,robot_reliability,cpr)
+st.caption(profile_note);c1,c2,c3,c4=st.columns(4);c1.metric("Team profile",f"{result['tranche']} {result['trajectory_symbol']}");c2.metric("First-event stage",result["stage_code"]);c3.metric("Reliability",f"{robot_reliability}%");c4.metric("CPR",f"{cpr}%")
+st.subheader("First-event recommendation");st.markdown(f"### {result['headline']}");st.write(result["summary"]);l,r=st.columns(2)
+with l:
+ st.markdown("#### Highest-value work")
+ for x in result["priorities"]:st.markdown(f"- {x}")
+ st.info(result["maturity_action"])
+with r:
+ st.markdown("#### Do less of")
+ for x in result["avoid"]:st.markdown(f"- {x}")
+ st.success(result["event_target"])
+st.markdown("#### Development allocation");st.bar_chart(result["allocation"],horizontal=True)
+if worlds_plan:
+ d=worlds_delta(result,tranche,trajectory,auto_reliability,robot_reliability,cpr);st.divider();st.subheader("World Championship delta plan");st.write("Keep the first-event plan above. These are the additional deltas to peak again at Worlds.");a,b=st.columns(2)
+ with a:
+  st.markdown("#### Implement after Event 1")
+  for x in d["deltas"]:st.markdown(f"- {x}")
+ with b:
+  st.markdown("#### Worlds targets")
+  for x in d["targets"]:st.markdown(f"- {x}")
+  st.warning(d["guardrail"])
+st.divider();st.subheader("Live source status");a,b=st.columns(2)
+with a:
+ st.markdown("#### Official game/manual sources")
+ for label,url in live["manuals"].items():st.markdown(f"- [{label}]({url})")
+ if program=="FTC" and live.get("first_events"):st.markdown(f"- [FIRST FTC Event Results]({live['first_events']})")
+with b:
+ st.markdown("#### Competition data")
+ for source in live["sources"]:st.markdown(f"- ✅ {source}")
+ for warning in live["warnings"]:st.markdown(f"- ⚠️ {warning}")
+with st.expander("API configuration"):
+ st.write("Statbotics and FTCScout are queried directly. The Blue Alliance requires TBA_AUTH_KEY. RobotEvents requires ROBOTEVENTS_TOKEN. Missing credentialed sources degrade gracefully.")
