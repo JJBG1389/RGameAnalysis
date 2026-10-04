@@ -120,9 +120,12 @@ def live_snapshot(program,team,season):
     if program=="FRC":
         try:
             out["profile"]=infer_frc_profile(team,season)
-            out["sources"].append("Statbotics live")
-            if out["profile"] and "Blue Alliance" in out["profile"].get("source",""):
-                out["sources"].append("The Blue Alliance historical tranche data")
+            if out["profile"]:
+                source_name=out["profile"].get("source","")
+                if "Statbotics" in source_name:
+                    out["sources"].append("Statbotics historical tranche data")
+                if "Blue Alliance" in source_name and "unavailable" not in source_name.lower():
+                    out["sources"].append("The Blue Alliance historical tranche data")
         except Exception as exc:
             out["warnings"].append(f"FRC tranche classifier unavailable: {exc}")
         try:
