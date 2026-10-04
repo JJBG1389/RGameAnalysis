@@ -1,5 +1,5 @@
 import streamlit as st
-from recommendation_engine import recommend, worlds_delta, robot_features, worlds_feature_delta, TRANCHE_LABELS, TRAJECTORIES
+from recommendation_engine import recommend, worlds_delta, robot_features, worlds_feature_delta, performance_targets, derivation_text, TRANCHE_LABELS, TRAJECTORIES, TRANCHE_SHARES
 from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
@@ -49,14 +49,14 @@ with st.sidebar:
     game_name = GAME_OPTIONS[program][season]
     team = st.text_input("Team number", "6964" if program == "FRC" else "")
     event_week = st.slider("First event competition week", 1, 8, 1)
-    worlds_plan = st.toggle("Team plans to attend World Championship", False)
+    worlds_plan = st.toggle("Team plans to attend World Championship", False, help="Adds a separate set of feature and development deltas for peaking again at Worlds.")
 
     st.divider()
     st.subheader("Current maturity")
-    primary_gate = st.select_slider("Primary scoring capability", ["Exists","Reliable","Integrated","Contested","Optimized"], value="Integrated")
-    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5)
-    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5)
-    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5)
+    primary_gate = st.select_slider("Primary scoring capability", ["Exists","Reliable","Integrated","Contested","Optimized"], value="Integrated", help="Exists=demonstrated; Reliable=repeats; Integrated=works on full robot; Contested=works under disruption; Optimized=cycle time tuned.")
+    auto_reliability = st.slider("Autonomous reliability (%)", 0, 100, 80, 5, help="Percent of full autonomous trials or matches where intended actions complete without robot-caused failure.")
+    robot_reliability = st.slider("Match reliability (%)", 0, 100, 90, 5, help="Percent of matches completed without a robot-caused major failure that materially reduces scoring.")
+    cpr = st.slider("Contested performance retention (%)", 0, 100, 75, 5, help="CPR is contested performance divided by nominal performance under defense, traffic, starvation, blocked routes, and partner interference.")
     refresh = st.button("Refresh live data", use_container_width=True)
 
 @st.cache_data(ttl=900, show_spinner=False)
@@ -81,8 +81,8 @@ else:
     st.sidebar.divider()
     st.sidebar.subheader("Provisional team tranche")
     st.sidebar.caption("Automatic tranche calculation is not yet available from the connected source for this program/team.")
-    tranche = st.sidebar.selectbox("Team tranche", list(TRANCHE_LABELS), index=3)
-    trajectory = st.sidebar.selectbox("Trajectory", TRAJECTORIES, index=0)
+    tranche = st.sidebar.selectbox("Team tranche", list(TRANCHE_LABELS), index=3, help="T1 Elite ~2%; T2 Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. Current model policy bands, not yet measured population shares.")
+    trajectory = st.sidebar.selectbox("Trajectory", TRAJECTORIES, index=0, help="Year-over-year direction based on pre-season historical performance: Rising, Stable, or Declining.")
     tranche_note = "Manual provisional tranche."
 
 result = recommend(program, season, team.strip(), event_week, tranche, trajectory, primary_gate, auto_reliability, robot_reliability, cpr)
