@@ -33,3 +33,5 @@ jobs:
               assert performance_targets("FRC",2025,t)["auto"]
           print("offline model checks OK")
           PY
+      - name: FTC live championship-anchor regression
+        run: python tests/ftc_live_regression.py
