@@ -127,7 +127,7 @@ def infer_frc_profile(team,season):
     if not sb and not tba_rows:return None
     sb_score=sb[-1]["percentile"] if sb else None
     tba_score=tba_rows[-1]["score"] if tba_rows else None
-    if sb_score is not None and tba_score is not None: composite=.60*sb_score+.40*tba_score;source="Statbotics + The Blue Alliance"
+    if sb_score is not None and tba_score is not None: composite=.75*sb_score+.25*tba_score;source="Statbotics + The Blue Alliance"
     elif sb_score is not None:composite=sb_score;source="Statbotics only (TBA unavailable)"
     else:composite=tba_score;source="The Blue Alliance only (Statbotics unavailable)"
     tranche=_tranche_from_score(composite)
@@ -135,7 +135,7 @@ def infer_frc_profile(team,season):
     for year in years:
         sp=next((x["percentile"] for x in sb if x["year"]==year),None)
         tp=next((x["score"] for x in tba_rows if x["year"]==year),None)
-        if sp is not None and tp is not None:history.append((year,.60*sp+.40*tp))
+        if sp is not None and tp is not None:history.append((year,.75*sp+.25*tp))
         elif sp is not None:history.append((year,sp))
         elif tp is not None:history.append((year,tp))
     if len(history)>=2 and history[-1][1]>=history[0][1]+5:trajectory="Rising"
