@@ -217,6 +217,19 @@ def performance_targets(program, season, tranche, event_week=4):
     return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tier scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Add only after marginal capabilities before the primary scoring loop is reliable.","Prioritize after peak speed before integration and contested testing."],"week_note":f"Week {event_week}"}
 
 
+VEX_REFERENCE_TARGETS = {
+    2026: {"auto":(15,35),"teleop":(45,90),"rate":"Target 6–10 high-value scoring/control actions with low possession loss.","cycles":"Target ~10–18 sec acquire/control/score cycles."},
+    2025: {"auto":(15,35),"teleop":(45,90),"rate":"Target 6–10 repeatable scoring actions while preserving mobile-goal/ring control.","cycles":"Target ~10–18 sec scoring cycles with endgame time protected."},
+    2024: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Triball scoring/clearing actions with reliable match-load execution.","cycles":"Target ~10–18 sec Triball acquire-to-goal cycles."},
+    2023: {"auto":(15,35),"teleop":(40,85),"rate":"Target 8–14 Disc scoring actions with low miss rate.","cycles":"Target ~7–12 sec collect/index/shoot cycles."},
+    2022: {"auto":(15,35),"teleop":(40,85),"rate":"Target 5–9 Mobile Goal/Ring scoring actions plus reliable platform endgame.","cycles":"Target ~12–20 sec Mobile Goal/Ring control cycles."},
+    2021: {"auto":(15,35),"teleop":(40,85),"rate":"Target 8–14 Ball scoring/control actions while maintaining goal ownership.","cycles":"Target ~8–14 sec Ball acquire-to-goal cycles."},
+    2020: {"auto":(15,35),"teleop":(40,85),"rate":"Target 7–12 Cube scoring/stacking actions with reliable tower control.","cycles":"Target ~10–18 sec Cube acquire-to-score cycles."},
+    2019: {"auto":(15,35),"teleop":(40,85),"rate":"Target 7–12 Cap/Flag scoring actions with reliable platform endgame.","cycles":"Target ~10–18 sec acquire-to-score cycles."},
+    2018: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Cone scoring actions plus reliable Mobile Goal control.","cycles":"Target ~12–20 sec Cone/Mobile Goal scoring cycles."},
+    2017: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Star/Cube scoring actions with reliable hanging/endgame.","cycles":"Target ~10–18 sec acquire-to-score cycles."},
+}
+
 TAILOR_LEVELS=("A","B","C","D","E")
 TRANCHE_BOUNDS={"T1":(85,100),"T2":(75,85),"T3":(63,75),"T4":(48,63),"T5":(32,48),"T6":(0,32)}
 TAILOR_FACTOR={"A":0.88,"B":0.94,"C":1.00,"D":1.06,"E":1.12}
