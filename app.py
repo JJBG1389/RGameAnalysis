@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.4 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.3 · Deploy 2026.10.04.5 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -104,7 +104,7 @@ c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under
 st.caption(tranche_note)
 
 with st.expander("Why was this tranche assigned?"):
-    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics EPA strength is weighted 60%; TBA qualification ranking, alliance selection, and playoff results are weighted 40%.")
+    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics EPA strength is weighted 75%; TBA qualification ranking, alliance selection, and playoff results are weighted 25%.")
     if tranche_data.get("composite") is not None:
         st.metric("Composite TEC score", f"{tranche_data['composite']:.1f}/100")
     if tranche_data.get("statbotics_score") is not None:
@@ -113,7 +113,7 @@ with st.expander("Why was this tranche assigned?"):
         st.write(f"**TBA event execution:** {tranche_data['tba_score']:.1f}/100")
     for item in tranche_data.get("evidence", []):
         st.markdown(f"- {item}")
-    st.caption("TEC bands: T1 >=90; T2 80 to <90; T3 68 to <80; T4 52 to <68; T5 35 to <52; T6 <35.")
+    st.caption("TEC bands: T1 >=85; T2 75 to <85; T3 63 to <75; T4 48 to <63; T5 32 to <48; T6 <32.")
 
 features = robot_features(program, season, tranche)
 targets = performance_targets(program, season, tranche)
