@@ -216,6 +216,40 @@ def performance_targets(program, season, tranche, event_week=4):
         }
     return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tier scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Add only after marginal capabilities before the primary scoring loop is reliable.","Prioritize after peak speed before integration and contested testing."],"week_note":f"Week {event_week}"}
 
+
+TAILOR_LEVELS=("A","B","C","D","E")
+TRANCHE_BOUNDS={"T1":(85,100),"T2":(75,85),"T3":(63,75),"T4":(48,63),"T5":(32,48),"T6":(0,32)}
+TAILOR_FACTOR={"A":0.88,"B":0.94,"C":1.00,"D":1.06,"E":1.12}
+
+def tailoring_level(tranche, composite):
+    """Map continuous historical capacity to an A-E quintile inside its tranche."""
+    if composite is None:return "A"
+    lo,hi=TRANCHE_BOUNDS.get(tranche,(0,100))
+    width=max(1e-9,hi-lo)
+    q=max(0.0,min(0.999999,(float(composite)-lo)/width))
+    return TAILOR_LEVELS[min(4,int(q*5))]
+
+def build_lookup_cell(program,season,tranche,tailor,event_week):
+    """Canonical Game x Tranche x Tailoring x Week recommendation package."""
+    base=performance_targets(program,season,tranche,event_week)
+    tf=TAILOR_FACTOR[tailor]
+    out=dict(base)
+    out["auto"]=_scale_range(base["auto"],tf)
+    out["teleop"]=_scale_range(base["teleop"],tf)
+    out["features"]=robot_features(program,season,tranche)
+    out["tranche"]=tranche;out["tailoring"]=tailor;out["week"]=int(event_week)
+    out["lookup_key"]=f"{program}:{int(season)}:{tranche}:{tailor}:W{int(event_week)}"
+    return out
+
+def build_game_lookup(program,season):
+    return {(t,a,w):build_lookup_cell(program,season,t,a,w)
+            for t in ("T1","T2","T3","T4","T5","T6")
+            for a in TAILOR_LEVELS for w in range(1,9)}
+
+def lookup_recommendation(program,season,tranche,composite,event_week):
+    a=tailoring_level(tranche,composite)
+    return build_lookup_cell(program,season,tranche,a,event_week)
+
 def derivation_text(program, season, tranche):
     return (
         f"Derived from Model 5.4 using the selected {program} {season} game structure, "
