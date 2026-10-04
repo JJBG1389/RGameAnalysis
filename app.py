@@ -133,7 +133,8 @@ st.caption(derivation_text(program, season, tranche))
 
 m1, m2 = st.columns(2)
 m1.metric("Target autonomous score", targets["auto"], help="Model target derived from game scoring economics, autonomous leverage, team tranche, and historical season-to-championship compression. Not an official benchmark.")
-m2.metric("Target teleop score", targets["teleop"], help="Model target derived from the selected game, competition week, sustainable scoring throughput, hidden team-history rating, and historical progression. Later competition weeks intentionally have higher targets.")\nst.caption(targets.get("week_note",""))
+m2.metric("Target teleop score", targets["teleop"], help="Model target derived from the selected game, competition week, sustainable scoring throughput, hidden team-history rating, and historical progression. Later competition weeks intentionally have higher targets.")
+st.caption(targets.get("week_note",""))
 
 st.markdown("### Recommended robot feature set")
 f1, f2, f3 = st.columns(3)
