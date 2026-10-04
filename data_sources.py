@@ -119,21 +119,37 @@ def live_snapshot(program,team,season):
     out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None}
     if program=="FRC":
         try:
-            out["profile"]=infer_frc_profile(team,season); out["sources"].append("Statbotics live");\n            if out["profile"] and "Blue Alliance" in out["profile"].get("source",""): out["sources"].append("The Blue Alliance historical tranche data")
-        except Exception as exc:out["warnings"].append(f"Statbotics unavailable: {exc}")
+            out["profile"]=infer_frc_profile(team,season)
+            out["sources"].append("Statbotics live")
+            if out["profile"] and "Blue Alliance" in out["profile"].get("source",""):
+                out["sources"].append("The Blue Alliance historical tranche data")
+        except Exception as exc:
+            out["warnings"].append(f"FRC tranche classifier unavailable: {exc}")
         try:
             data,err=tba_team_year(team,season)
-            if err:out["warnings"].append(err)
-            else:out["tba"]=data; out["sources"].append("The Blue Alliance live")
-        except Exception as exc:out["warnings"].append(f"The Blue Alliance unavailable: {exc}")
+            if err:
+                out["warnings"].append(err)
+            else:
+                out["tba"]=data
+                out["sources"].append("The Blue Alliance live")
+        except Exception as exc:
+            out["warnings"].append(f"The Blue Alliance unavailable: {exc}")
     elif program=="FTC":
-        try:out["ftcscout"]=ftcscout_team(team); out["sources"].append("FTCScout live")
-        except Exception as exc:out["warnings"].append(f"FTCScout unavailable: {exc}")
-        out["first_events"]=first_ftc_results_link(season); out["sources"].append("FIRST FTC Events link")
+        try:
+            out["ftcscout"]=ftcscout_team(team)
+            out["sources"].append("FTCScout live")
+        except Exception as exc:
+            out["warnings"].append(f"FTCScout unavailable: {exc}")
+        out["first_events"]=first_ftc_results_link(season)
+        out["sources"].append("FIRST FTC Events link")
     else:
         try:
             data,err=robotevents_team(team)
-            if err:out["warnings"].append(err)
-            else:out["robotevents"]=data; out["sources"].append("RobotEvents live")
-        except Exception as exc:out["warnings"].append(f"RobotEvents unavailable: {exc}")
+            if err:
+                out["warnings"].append(err)
+            else:
+                out["robotevents"]=data
+                out["sources"].append("RobotEvents live")
+        except Exception as exc:
+            out["warnings"].append(f"RobotEvents unavailable: {exc}")
     return out
