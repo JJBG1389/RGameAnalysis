@@ -141,12 +141,59 @@ PERFORMANCE_TARGETS = {
     },
 }
 
-def performance_targets(program, season, tranche):
+# Historical FRC target contribution ranges at a mid-season reference point.
+# Values are robot-contribution targets, not alliance final scores. They provide
+# the correct game-specific scale; competition week then adjusts them.
+FRC_REFERENCE_TARGETS = {
+    2024: {"auto":(20,35),"teleop":(45,80),"rate":"Target repeatable Note cycles with shot preparation occurring while driving.","cycles":"Floor intake -> Speaker scoring; add Amp/Stage only when it improves alliance value."},
+    2023: {"auto":(15,30),"teleop":(35,65),"rate":"Target repeatable grid cycles with automated alignment and low placement miss rate.","cycles":"Loading zone/floor acquisition -> high-value grid placement -> charge-station endgame."},
+    2022: {"auto":(12,24),"teleop":(30,60),"rate":"Target fast Cargo acquisition and repeatable Hub shooting with minimal aim/setup time.","cycles":"Acquire Cargo in pairs where practical -> shoot -> reacquire; protect climb time."},
+    2020: {"auto":(10,24),"teleop":(30,65),"rate":"Target high-confidence Power Cell bursts and minimize collection-to-shot dead time.","cycles":"Collect -> index -> shoot; add Control Panel only if primary scoring is already mature."},
+    2019: {"auto":(9,18),"teleop":(30,55),"rate":"Target fast Hatch/Cargo cycles with alignment assistance.","cycles":"Acquire -> align -> place; prioritize scoring locations that reduce travel and congestion."},
+    2018: {"auto":(10,25),"teleop":(35,70),"rate":"Target fast Cube cycles and reliable ownership transitions.","cycles":"Acquire Cube -> score Switch/Scale -> reacquire; preserve endgame climb reliability."},
+    2017: {"auto":(15,35),"teleop":(35,75),"rate":"Target repeatable gear/fuel contribution with low station-to-score travel loss.","cycles":"Specialize around the highest-value repeatable scoring loop; protect climb reliability."},
+    2016: {"auto":(10,25),"teleop":(30,65),"rate":"Target reliable defense crossing plus high-confidence goal scoring.","cycles":"Cross defenses efficiently -> acquire -> score; avoid low-value mechanism breadth."},
+}
+
+TRANCHE_TARGET_FACTOR={"T1":1.45,"T2":1.25,"T3":1.05,"T4":0.85,"T5":0.65,"T6":0.45}
+
+def _week_factor(event_week):
+    # Week 1 is the opening-event target. Growth tapers late in the season.
+    w=max(1,min(8,int(event_week)))
+    return {1:0.78,2:0.86,3:0.94,4:1.00,5:1.07,6:1.13,7:1.18,8:1.22}[w]
+
+def _scale_range(text,factor):
+    import re
+    nums=re.findall(r"\d+(?:\.\d+)?",str(text))
+    if len(nums)<2:return text
+    lo=int(round(float(nums[0])*factor)); hi=int(round(float(nums[1])*factor))
+    suffix=" Fuel points" if "Fuel" in str(text) else " points"
+    plus="+" if "+" in str(text) else ""
+    return f"{lo}–{hi}{plus}{suffix}"
+
+def performance_targets(program, season, tranche, event_week=4):
     game=PERFORMANCE_TARGETS.get((program,int(season)),{})
-    if tranche in game:return game[tranche]
-    # Generic targets are deliberately qualitative when we have not encoded the
-    # game's scoring economics yet; never invent numeric game targets.
-    return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tranche scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Do not add marginal capabilities before the primary scoring loop is reliable.","Do not optimize peak speed before integration and contested testing."]}
+    factor=_week_factor(event_week)
+    if tranche in game:
+        base=dict(game[tranche])
+        base["auto"]=_scale_range(base["auto"],factor)
+        base["teleop"]=_scale_range(base["teleop"],factor)
+        base["week_note"]=f"Week {event_week} target; week factor {factor:.2f} relative to the mid-season reference."
+        return base
+    if program=="FRC" and int(season) in FRC_REFERENCE_TARGETS:
+        ref=FRC_REFERENCE_TARGETS[int(season)]
+        tf=TRANCHE_TARGET_FACTOR.get(tranche,1.0)
+        f=tf*factor
+        alo,ahi=ref["auto"]; tlo,thi=ref["teleop"]
+        return {
+            "auto":f"{round(alo*f)}–{round(ahi*f)} points",
+            "teleop":f"{round(tlo*f)}–{round(thi*f)} points",
+            "rate":ref["rate"],
+            "cycles":ref["cycles"],
+            "avoid":["Do not add marginal capabilities before the primary scoring loop is reliable.","Do not optimize peak speed before integration and contested testing."],
+            "week_note":f"Week {event_week} target scaled for the selected team's hidden history rating."
+        }
+    return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tier scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Do not add marginal capabilities before the primary scoring loop is reliable.","Do not optimize peak speed before integration and contested testing."],"week_note":f"Week {event_week}"}
 
 def derivation_text(program, season, tranche):
     return (
