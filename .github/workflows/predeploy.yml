@@ -35,3 +35,5 @@ jobs:
           PY
       - name: FRC historical week scoring regression
         run: python tests/frc_week_scoring_regression.py
+      - name: Readiness UI regression
+        run: python tests/readiness_ui_regression.py
