@@ -211,7 +211,16 @@ def live_snapshot(program,team,season):
             out["warnings"].append(f"The Blue Alliance unavailable: {exc}")
     elif program=="FTC":
         try:
+            out["profile"]=infer_ftc_profile(team,season)
+            if out["profile"]:
+                out["sources"].append("FTCScout historical team data")
+        except Exception as exc:
+            out["warnings"].append(f"FTC history classifier unavailable: {exc}")
+        try:
             out["ftcscout"]=ftcscout_team(team)
+            info=out["ftcscout"]
+            if isinstance(info,dict):
+                out["team_name"]=info.get("name")
             out["sources"].append("FTCScout live")
         except Exception as exc:
             out["warnings"].append(f"FTCScout unavailable: {exc}")
