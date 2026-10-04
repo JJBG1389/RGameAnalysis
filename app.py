@@ -26,7 +26,7 @@ GAME_OPTIONS = {
 
 with st.sidebar:
     st.header("Team & game")
-    program = st.selectbox("Program", ["FRC", "FTC"])
+    program = st.selectbox("Program", ["FRC", "FTC", "VEX"])
     game_labels = [f"{year} — {name}" for year, name in GAME_OPTIONS[program].items()]
     selected_game = st.selectbox("Game / season", game_labels)
     season = int(selected_game.split(" — ", 1)[0])
