@@ -96,10 +96,10 @@ c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention. CPR = perform
 st.caption(tranche_note)
 if tranche_data and tranche_data.get("evidence"):
     with st.expander("Why was this tranche assigned?"):
-        st.write("The automatic FRC tranche uses the team's Statbotics worldwide EPA percentile from seasons before the selected game. The latest pre-season percentile sets the tranche; the change across recent seasons sets the rising/stable/declining arrow.")
+        st.write("The automatic FRC tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics is weighted 40%; TBA qualification ranking, alliance selection, and playoff results are weighted 60%. The recent composite trend sets the rising/stable/declining arrow.")
         for item in tranche_data["evidence"]:
             st.markdown(f"- {item}")
-        st.caption("Bands: T1 >=98th percentile; T2 90 to <98; T3 75 to <90; T4 50 to <75; T5 20 to <50; T6 <20. TBA event/playoff evidence will be added as a second classifier input rather than used as a silent fallback.")
+        st.caption("Composite TEC bands: T1 >=90; T2 80 to <90; T3 68 to <80; T4 52 to <68; T5 35 to <52; T6 <35. The evidence below shows the historical source data used.")
 
 with st.expander("What does the team tranche mean?", expanded=True):
     st.markdown(TRANCHE_HELP)
