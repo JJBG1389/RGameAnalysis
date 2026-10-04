@@ -95,7 +95,7 @@ def ftcscout_quick_stats(team,season):
 def infer_ftc_profile(team,season):
     """Rolling three-season FTC execution capacity from FTCScout QuickStats."""
     rows=[]; evidence=[]
-    for year in range(int(season)-3,int(season)):
+    # UI year is season ending year; FTCScout season is starting year.\n    for year in range(int(season)-4,int(season)-1):
         try:
             q=ftcscout_quick_stats(team,year)
             count=int(q.get("count") or 0)
@@ -106,7 +106,16 @@ def infer_ftc_profile(team,season):
             evidence.append(f"FTCScout {year}: total OPR rank {rank} of {count} ({pct:.1f}th percentile)")
         except Exception as exc:
             evidence.append(f"FTCScout {year}: unavailable ({type(exc).__name__})")
-    if not rows:return None
+    if not rows:
+        # New/rookie FTC teams legitimately have no prior QuickStats. Give the
+        # engine a foundation prior instead of treating valid teams as errors.
+        try:
+            info=ftcscout_team(team)
+            if isinstance(info,dict):
+                return {"tranche":"T6","trajectory":"Stable","source":"FTCScout team record; no prior-season QuickStats","composite":None,"ftcscout_score":None,"evidence":["No prior-season FTCScout QuickStats; using foundation/rookie prior."],"history":[]}
+        except Exception:
+            pass
+        return None
     vals=[x["percentile"] for x in rows[-3:]]
     weights={1:[1.0],2:[0.4,0.6],3:[0.2,0.3,0.5]}[len(vals)]
     composite=sum(v*w for v,w in zip(vals,weights))
