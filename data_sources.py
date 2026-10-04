@@ -124,7 +124,7 @@ def live_snapshot(program,team,season):
                 source_name=out["profile"].get("source","")
                 if "Statbotics" in source_name:
                     out["sources"].append("Statbotics historical tranche data")
-                if "Blue Alliance" in source_name and "unavailable" not in source_name.lower():
+                if "Blue Alliance" in source_name and "TBA unavailable" not in source_name:
                     out["sources"].append("The Blue Alliance historical tranche data")
         except Exception as exc:
             out["warnings"].append(f"FRC tranche classifier unavailable: {exc}")
