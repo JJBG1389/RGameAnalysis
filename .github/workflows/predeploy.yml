@@ -39,3 +39,5 @@ jobs:
         run: python tests/readiness_ui_regression.py
       - name: Model 5.4 counterfactual sensitivity
         run: python tests/model54_sensitivity.py
+      - name: FTC 31926 history regression
+        run: python tests/ftc_31926_regression.py
