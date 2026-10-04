@@ -101,3 +101,59 @@ def worlds_feature_delta(program, season, tranche):
         ] + (base["optional"][:1] if tranche in ("T1","T2","T3") and base["optional"] else []),
         "do_not_sacrifice": "Do not destabilize the proven primary scoring loop, autonomous reliability, or driver practice to add a late championship feature.",
     }
+
+
+TRANCHE_SHARES = {
+    "T1": "≈2% of teams",
+    "T2": "≈8% of teams",
+    "T3": "≈15% of teams",
+    "T4": "≈25% of teams",
+    "T5": "≈30% of teams",
+    "T6": "≈20% of teams",
+}
+# These are policy bands for the model, not measured FIRST/VEX population shares.
+# The live classifier will eventually replace them with season/program-specific empirical quantiles.
+
+PERFORMANCE_TARGETS = {
+    ("FRC", 2026): {
+        "T1": {"auto":"150–190+ Fuel points","teleop":"430–540+ Fuel points","rate":"Sustain ~3.5–4.5+ scored Fuel/sec during active scoring bursts; refill/reposition with minimal dead time.","cycles":"Treat Fuel as continuous flow rather than discrete cycles; maximize intake-to-shot duty cycle.","avoid":["Do not commit to Tower scoring if disengage/travel/climb opportunity cost exceeds expected Fuel during the same time.","Do not build a turret/aim-independent system unless testing shows a measurable throughput/CPR gain over chassis aiming."]},
+        "T2": {"auto":"110–160 Fuel points","teleop":"300–430 Fuel points","rate":"Target ~2.5–3.5 scored Fuel/sec in active shooting windows.","cycles":"High-capacity collection + rapid dump; minimize inactive-Hub dead time by collecting/positioning.","avoid":["Do not sacrifice shooter/intake reliability for an elaborate Tower mechanism.","Avoid secondary mechanisms that reduce hopper capacity or jam resistance."]},
+        "T3": {"auto":"70–120 Fuel points","teleop":"200–320 Fuel points","rate":"Target ~1.8–2.8 scored Fuel/sec when shooting.","cycles":"Reliable collect-buffer-shoot loop; prioritize one or two proven shooting locations.","avoid":["Do not chase championship-level turret complexity before fixed shooting and auto are mature.","Do not optimize Tower points ahead of primary Fuel throughput."]},
+        "T4": {"auto":"40–80 Fuel points","teleop":"130–230 Fuel points","rate":"Target ~1.2–2.0 scored Fuel/sec from a repeatable location.","cycles":"Wide intake, simple buffer, repeatable shooter; spend saved complexity on auto and driving.","avoid":["Do not build a high-complexity turret initially.","Do not pursue multiple endgame options; add Tower only if it becomes highly reliable early."]},
+        "T5": {"auto":"20–50 Fuel points","teleop":"80–150 Fuel points","rate":"Target ≥0.8–1.3 scored Fuel/sec with very low jam rate.","cycles":"One reliable collection/scoring loop.","avoid":["Skip turret and complex Tower mechanisms.","Do not add a second scoring architecture until the primary loop is reliable."]},
+        "T6": {"auto":"10–30 Fuel points","teleop":"40–100 Fuel points","rate":"Target repeatable scoring every match before optimizing rate.","cycles":"Reliable drivetrain + intake + one scoring solution.","avoid":["Do not attempt championship-complexity mechanisms.","Skip optional scoring/endgame functions until the core robot completes full simulated matches."]},
+    },
+    ("FRC", 2025): {
+        "T1":{"auto":"70–85+ points","teleop":"170–230+ points","rate":"Target ~5–7 sec per Coral cycle equivalent in sustained reef work.","cycles":"Multi-Coral auto; rapid L4 cycling with automated reef alignment.","avoid":["Do not spend meaningful match time on low-value Algae if it displaces L4 Coral.","Do not sacrifice triple/deep-cage endgame reliability for marginal secondary scoring."]},
+        "T2":{"auto":"50–75 points","teleop":"130–190 points","rate":"Target ~7–9 sec effective Coral cycles.","cycles":"L4-first cycling; automated alignment; reliable Deep Cage.","avoid":["Avoid broad Algae specialization unless alliance strategy demands it.","Do not add scoring degrees of freedom that slow Coral cycles."]},
+        "T3":{"auto":"35–60 points","teleop":"90–145 points","rate":"Target ~9–12 sec effective Coral cycles.","cycles":"Fast station acquisition + repeatable L4 placement; simple Algae utility.","avoid":["Do not build an elaborate Algae system ahead of L4 reliability.","Avoid late redesigns for marginal reef reach."]},
+        "T4":{"auto":"20–45 points","teleop":"60–105 points","rate":"Target ~12–16 sec effective Coral cycles with ≥95% placement reliability.","cycles":"Prioritize station intake, L4 scoring, auto-align, and one reliable climb.","avoid":["Do not attempt to become equally good at Coral and Algae.","Skip complex secondary manipulators until L4 + auto are mature."]},
+        "T5":{"auto":"10–30 points","teleop":"35–70 points","rate":"Target ~16–22 sec reliable Coral cycles.","cycles":"One reliable Coral acquisition/placement loop.","avoid":["Skip specialized Algae scoring.","Avoid complex climb if it prevents a working Coral robot."]},
+        "T6":{"auto":"5–20 points","teleop":"20–50 points","rate":"Complete repeatable Coral scoring before cycle optimization.","cycles":"Reliable drivetrain + one Coral level + simple auto.","avoid":["Do not attempt all reef levels plus Algae plus climb.","Choose the simplest repeatable scoring level and finish early."]},
+    },
+    ("FTC", 2027): {
+        "T1":{"auto":"80–120+ points target","teleop":"330–430+ points target","rate":"Target a HIVE TIP approximately every 12–18 sec per alliance robot once recycling is established.","cycles":"Acquire/buffer → launch → TIP → immediately reacquire dump; minimize chassis rotation and empty travel.","avoid":["Do not divert both robots to FLOWERS late; keep at least one elite HIVE recycler active.","Do not add a turret unless it measurably reduces seconds/TIP or improves CPR."]},
+        "T2":{"auto":"60–100 points","teleop":"260–360 points","rate":"Target a TIP about every 16–22 sec.","cycles":"Reliable multi-element burst + rapid dump reacquisition.","avoid":["Avoid dedicated FLOWER specialization that materially reduces HIVE throughput.","Do not overcomplicate launcher aiming before shot repeatability is high."]},
+        "T3":{"auto":"40–80 points","teleop":"190–290 points","rate":"Target a TIP about every 20–28 sec.","cycles":"Wide intake, buffered storage, repeatable preferred shooting zone.","avoid":["Do not start with a turret.","Do not build a sophisticated FLOWER system until HIVE cycles and auto are mature."]},
+        "T4":{"auto":"25–60 points","teleop":"130–220 points","rate":"Target a reliable TIP every ~25–35 sec.","cycles":"Simple wide intake + fixed launcher + chassis auto-aim; maximize repeatability.","avoid":["Do not build a turret for Event 1.","Do not pursue complex FLOWER manipulation unless it is mechanically trivial and already reliable."]},
+        "T5":{"auto":"15–40 points","teleop":"80–150 points","rate":"Target 2–4 reliable HIVE TIPS in teleop.","cycles":"One preferred shooting location and forgiving intake.","avoid":["Skip turret and complex FLOWER mechanisms.","Do not optimize long-range shooting before preferred-zone accuracy is ≥90–95%."]},
+        "T6":{"auto":"5–25 points","teleop":"40–100 points","rate":"Target at least 1–3 repeatable HIVE TIPS per match.","cycles":"Drive, acquire, score reliably, park.","avoid":["Do not attempt every game function.","Prioritize a legal, reliable HIVE scorer and basic autonomous movement/scoring."]},
+    },
+}
+
+def performance_targets(program, season, tranche):
+    game=PERFORMANCE_TARGETS.get((program,int(season)),{})
+    if tranche in game:return game[tranche]
+    # Generic targets are deliberately qualitative when we have not encoded the
+    # game's scoring economics yet; never invent numeric game targets.
+    return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tranche scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Do not add marginal capabilities before the primary scoring loop is reliable.","Do not optimize peak speed before integration and contested testing."]}
+
+def derivation_text(program, season, tranche):
+    return (
+        f"Derived from Model 5.3 using the selected {program} {season} rules/game structure, "
+        f"the team's {tranche} execution-capacity tranche, autonomous leverage, points-per-second and "
+        "travel/cycle economics, game-piece availability/recycling, endgame opportunity cost, reliability, "
+        "Contested Performance Retention, alliance complementarity, and historical season-to-championship "
+        "compression patterns. Numeric targets are model targets, not official benchmarks; they should be "
+        "updated as live event data accumulates."
+    )
