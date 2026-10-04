@@ -151,7 +151,7 @@ with r:
         st.markdown(f"- {x}")
     st.success(result["event_target"])
 
-st.markdown("#### Development allocation")
+st.markdown("#### Development allocation", help="This chart tells the team how to divide its NEXT block of work. The bars are percentages and add to 100%. Reliability = 25 means spend about one quarter of the next work period finding and fixing robot failures. Autonomous = 25 means spend about one quarter on autonomous. It is a time/resource recommendation, NOT a robot score.")
 st.bar_chart(result["allocation"], horizontal=True)
 
 if worlds_plan:
