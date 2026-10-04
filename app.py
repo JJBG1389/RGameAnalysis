@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.8 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.3 · Deploy 2026.10.04.9 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -93,7 +93,7 @@ if not tranche:
             st.warning(warning)
     else:
         st.warning("No classifier result was returned. Try Refresh live data. If this continues, the historical API response needs to be inspected.")
-    st.info("For FRC, automatic tranche classification requires usable pre-season Statbotics and/or The Blue Alliance history. The app will no longer silently assign T4 when that data is missing.")
+    st.info("Automatic recommendations require usable historical competition data before the selected season. FRC uses Statbotics + The Blue Alliance; FTC uses FTCScout QuickStats. The app will not silently guess a backend team tier when history is missing.")
     st.stop()
 
 tranche_note = f"Auto-classified from {tranche_data['source']} using only seasons before {season}."
