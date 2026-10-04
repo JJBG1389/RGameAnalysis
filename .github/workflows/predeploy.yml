@@ -41,3 +41,7 @@ jobs:
         run: python tests/model54_sensitivity.py
       - name: FTC 31926 history regression
         run: python tests/ftc_31926_regression.py
+      - name: Historical full-season output audit
+        run: python tests/full_population_coverage.py
+      - name: Streamlit startup smoke
+        run: timeout 15s streamlit run app.py --server.headless true --server.port 8501 > /tmp/streamlit.log 2>&1 & sleep 8; curl -f http://localhost:8501/_stcore/health; cat /tmp/streamlit.log
