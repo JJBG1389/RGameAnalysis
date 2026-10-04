@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.2 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.3 · Deploy 2026.10.04.3 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -104,7 +104,7 @@ c4.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under
 st.caption(tranche_note)
 
 with st.expander("Why was this tranche assigned?"):
-    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics is weighted 40%; TBA qualification ranking, alliance selection, and playoff results are weighted 60%.")
+    st.write("For FRC, the automatic tranche combines historical Statbotics EPA strength with The Blue Alliance event execution from seasons BEFORE the selected game. Statbotics EPA strength is weighted 60%; TBA qualification ranking, alliance selection, and playoff results are weighted 40%.")
     if tranche_data.get("composite") is not None:
         st.metric("Composite TEC score", f"{tranche_data['composite']:.1f}/100")
     if tranche_data.get("statbotics_score") is not None:
