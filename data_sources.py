@@ -107,7 +107,9 @@ def infer_ftc_profile(team,season):
         except Exception as exc:
             evidence.append(f"FTCScout {year}: unavailable ({type(exc).__name__})")
     if not rows:return None
-    composite=sum(x["percentile"] for x in rows)/len(rows)
+    vals=[x["percentile"] for x in rows[-3:]]
+    weights={1:[1.0],2:[0.4,0.6],3:[0.2,0.3,0.5]}[len(vals)]
+    composite=sum(v*w for v,w in zip(vals,weights))
     tranche=_tranche_from_score(composite)
     if len(rows)>=2 and rows[-1]["percentile"]>=rows[0]["percentile"]+5: trajectory="Rising"
     elif len(rows)>=2 and rows[-1]["percentile"]<=rows[0]["percentile"]-5: trajectory="Declining"
