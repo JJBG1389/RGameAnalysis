@@ -183,3 +183,18 @@ The UI includes a **Team plans to attend World Championship** toggle.
 - **On:** the advisor keeps the first-event plan and adds a separate **World Championship delta plan**: upgrades, maturity targets, autonomous expansion, CPR/reliability targets, and a guardrail against destabilizing a proven robot with late features.
 
 The Worlds output is intentionally expressed as deltas from the first-event configuration rather than as a second independent robot design.
+
+
+## Pre-deploy regression tests
+
+Before publishing a classifier change, run:
+
+```powershell
+python tests/live_smoke_test.py
+```
+
+The live test matrix includes FRC 254, 971, 1389, 6964 and a broader set of teams intended to exercise different historical performance levels. It also checks multiple FTC teams against FTCScout and multiple VEX teams against RobotEvents when the token is configured.
+
+The suite specifically guards against the original silent-default bug: 254/971/1389/6964 may not all collapse into one tranche because a parser failed. It also requires the FRC classifier to expose a composite score and source evidence.
+
+**Important:** FTC and VEX automatic tranche classification is not considered validated yet. Their live-source tests currently verify data retrieval and deliberately reject invented/default tranches. Auto-tranche will be enabled only after normalized multi-season classifiers are implemented and tested.
