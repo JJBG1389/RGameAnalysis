@@ -105,14 +105,14 @@ c2.metric("Reliability", f"{robot_reliability}%", help="How often the robot comp
 c3.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
 
 features = robot_features(program, season, tranche)
-targets = performance_targets(program, season, tranche)
+targets = performance_targets(program, season, tranche, event_week)
 
 st.subheader("Recommended robot specification")
 st.caption(derivation_text(program, season, tranche))
 
 m1, m2 = st.columns(2)
 m1.metric("Target autonomous score", targets["auto"], help="Model target derived from game scoring economics, autonomous leverage, team tranche, and historical season-to-championship compression. Not an official benchmark.")
-m2.metric("Target teleop score", targets["teleop"], help="Model target derived from sustainable scoring throughput, team tranche, and historical progression. Not an official benchmark.")
+m2.metric("Target teleop score", targets["teleop"], help="Model target derived from the selected game, competition week, sustainable scoring throughput, hidden team-history rating, and historical progression. Later competition weeks intentionally have higher targets.")\nst.caption(targets.get("week_note",""))
 
 st.markdown("### Recommended robot feature set")
 f1, f2, f3 = st.columns(3)
