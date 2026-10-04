@@ -2,7 +2,7 @@ import os,sys,re
 sys.path.insert(0,os.path.dirname(os.path.dirname(__file__)))
 from recommendation_engine import build_game_lookup,tailoring_level,lookup_recommendation
 
-GAMES=[("FRC",y) for y in (2016,2017,2018,2019,2020,2022,2023,2024,2025,2026)]+[("FTC",y) for y in range(2018,2028)]
+GAMES=[("FRC",y) for y in (2016,2017,2018,2019,2020,2022,2023,2024,2025,2026)]+[("FTC",y) for y in range(2018,2028)]+[("VEX",y) for y in range(2017,2027)]
 fail=[]
 for p,y in GAMES:
     table=build_game_lookup(p,y)
