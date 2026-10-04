@@ -89,7 +89,7 @@ result = recommend(program, season, team.strip(), event_week, tranche, trajector
 
 st.caption(f"{program} · {season} {game_name}")
 c1,c2,c3,c4 = st.columns(4)
-c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}")
+c1.metric("Team tranche", f"{result['tranche']} {result['trajectory_symbol']}", help="T1 Elite ~2%; T2 Championship Contender ~8%; T3 Regional Contender ~15%; T4 Emerging ~25%; T5 Developing ~30%; T6 Foundation ~20%. These are current model policy bands; future versions will calculate empirical shares by program/season.")
 c2.metric("First-event stage", result["stage_code"])
 c3.metric("Reliability", f"{robot_reliability}%")
 c4.metric("CPR", f"{cpr}%")
