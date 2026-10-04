@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.3 · Deploy 2026.10.04.10 · live source adapters · tranche-aware first-event + Worlds planning")
+st.caption("Model 5.4 · Deploy 2026.10.04.11 · live source adapters · tranche-aware first-event + Worlds planning")
 
 GAME_OPTIONS = {
     "FRC": {
