@@ -30,6 +30,9 @@ def manual_links(program,season):
     if program=="FTC": return {"Official current materials":MANUAL_SOURCES["FTC"]["current"],"Official season archive":MANUAL_SOURCES["FTC"]["archive_template"].format(year=season)}
     if program=="FRC": return {"Official current materials":MANUAL_SOURCES["FRC"]["current"],"Official game archive":MANUAL_SOURCES["FRC"]["archive"]}
     return {"Official current competition page":MANUAL_SOURCES["VEX"]["current"],"Official current manual":MANUAL_SOURCES["VEX"]["manual"]}
+def statbotics_team(team):
+    return _get_json(f"https://api.statbotics.io/v3/team/{int(team)}")
+
 def statbotics_team_year(team,year):
     urls=[
         f"https://api.statbotics.io/v3/team_year/{int(team)}/{int(year)}",
@@ -144,7 +147,7 @@ def infer_frc_profile(team,season):
     return {"tranche":tranche,"trajectory":trajectory,"source":source,"composite":composite,"statbotics_score":sb_score,"tba_score":tba_score,"evidence":evidence,"history":history}
 
 def live_snapshot(program,team,season):
-    out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None}
+    out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None,"team_name":None}
     if program=="FRC":
         try:
             out["profile"]=infer_frc_profile(team,season)
