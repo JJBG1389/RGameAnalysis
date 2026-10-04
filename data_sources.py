@@ -42,36 +42,60 @@ def robotevents_team(team):
     if not token:return None,"ROBOTEVENTS_TOKEN not configured"
     return _get_json("https://www.robotevents.com/api/v2/teams",headers={"Authorization":f"Bearer {token}"},params={"number[]":team}),None
 def infer_frc_profile(team,season):
+    """Infer FRC tranche from pre-season Statbotics team-year percentiles.
+
+    Statbotics v3 TeamYear exposes flat fields including total_epa_rank,
+    total_epa_percentile, and total_team_count. We use the latest available
+    pre-season percentile for tranche and the 3-year percentile change for
+    trajectory. We never silently default to T4 when data is missing.
+    """
     rows=[]
     for year in range(max(2002,int(season)-3),int(season)):
-        try: rows.append((year,statbotics_team_year(team,year)))
-        except Exception: pass
-    if not rows:return None
-    latest_year,latest=rows[-1]; epa=latest.get("epa",{}) if isinstance(latest,dict) else {}; pct=None
-    if isinstance(epa,dict):
-        total=epa.get("total_points",{})
-        if isinstance(total,dict):pct=total.get("percentile")
-        if pct is None:pct=epa.get("percentile")
-    if pct is not None:
-        pct=float(pct); pct=pct*100 if pct<=1 else pct
-    if pct is None:tranche="T4"
-    elif pct>=98:tranche="T1"
-    elif pct>=90:tranche="T2"
-    elif pct>=70:tranche="T3"
-    elif pct>=40:tranche="T4"
-    elif pct>=15:tranche="T5"
-    else:tranche="T6"
-    pcts=[]
-    for _,r in rows:
-        e=r.get("epa",{}) if isinstance(r,dict) else {}; p=None
-        if isinstance(e,dict):
-            tp=e.get("total_points",{})
-            if isinstance(tp,dict):p=tp.get("percentile")
-            if p is None:p=e.get("percentile")
-        if p is not None:
-            p=float(p); pcts.append(p*100 if p<=1 else p)
-    trajectory="Rising" if len(pcts)>=2 and pcts[-1]>=pcts[0]+5 else ("Declining" if len(pcts)>=2 and pcts[-1]<=pcts[0]-5 else "Stable")
-    return {"tranche":tranche,"trajectory":trajectory,"source":"Statbotics","latest_history_year":latest_year,"percentile":pct}
+        try:
+            row=statbotics_team_year(team,year)
+            pct=row.get("total_epa_percentile") if isinstance(row,dict) else None
+            rank=row.get("total_epa_rank") if isinstance(row,dict) else None
+            count=row.get("total_team_count") if isinstance(row,dict) else None
+            if pct is not None:
+                pct=float(pct)
+                pct=pct*100 if pct<=1 else pct
+                rows.append({"year":year,"percentile":pct,"rank":rank,"team_count":count,"raw":row})
+        except Exception:
+            pass
+    if not rows:
+        return None
+
+    latest=rows[-1]; pct=latest["percentile"]
+    # Quantile bands: top 2%, next 8%, next 15%, next 25%, next 30%, bottom 20%.
+    if pct>=98: tranche="T1"
+    elif pct>=90: tranche="T2"
+    elif pct>=75: tranche="T3"
+    elif pct>=50: tranche="T4"
+    elif pct>=20: tranche="T5"
+    else: tranche="T6"
+
+    if len(rows)>=2 and rows[-1]["percentile"]>=rows[0]["percentile"]+5: trajectory="Rising"
+    elif len(rows)>=2 and rows[-1]["percentile"]<=rows[0]["percentile"]-5: trajectory="Declining"
+    else: trajectory="Stable"
+
+    evidence=[]
+    for r in rows:
+        detail=f'{r["year"]}: {r["percentile"]:.1f}th EPA percentile'
+        if r["rank"] is not None and r["team_count"] is not None:
+            detail+=f' (rank {r["rank"]} of {r["team_count"]})'
+        evidence.append(detail)
+
+    return {
+        "tranche":tranche,
+        "trajectory":trajectory,
+        "source":"Statbotics",
+        "latest_history_year":latest["year"],
+        "percentile":pct,
+        "rank":latest["rank"],
+        "team_count":latest["team_count"],
+        "evidence":evidence,
+    }
+
 def live_snapshot(program,team,season):
     out={"program":program,"team":team,"season":int(season),"checked_at":datetime.now(timezone.utc).isoformat(),"manuals":manual_links(program,season),"sources":[],"warnings":[],"profile":None}
     if program=="FRC":
