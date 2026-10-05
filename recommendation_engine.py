@@ -65,6 +65,15 @@ GAME_FEATURES = {
         "should": ["Alliance-complementary Sample/Specimen capability", "Reliable ascent when opportunity cost is favorable", "Automated scoring positions"],
         "optional": ["Full hybrid capability if specialization is already mature"],
     },
+    ("VEX", 2025): {"must":["Fast Ring acquisition","Reliable Ring scoring","Mobile Goal control","Autonomous scoring routine","Reliable endgame strategy"],"should":["Automated scoring alignment","Multiple autonomous routes","Defense-resistant possession"],"optional":["Secondary scoring geometry after primary cycles are mature"]},
+    ("VEX", 2024): {"must":["Fast Triball acquisition","Reliable offensive scoring","Match-load capability","Autonomous scoring routine","Reliable Elevation endgame"],"should":["Triball clearing/control","Multiple autonomous routes","Defense-resistant scoring"],"optional":["Complex multi-object storage before basic throughput is mature"]},
+    ("VEX", 2023): {"must":["Fast Disc intake","Repeatable Disc shooter","Reliable indexing","Autonomous scoring routine","Roller capability"],"should":["Vision/aim assistance","Multiple shooting positions","Expansion endgame"],"optional":["Extreme-range shooting before accuracy is mature"]},
+    ("VEX", 2022): {"must":["Reliable Mobile Goal manipulation","Ring scoring","Autonomous scoring routine","Platform endgame capability","Robust drivetrain"],"should":["Multiple Mobile Goal strategies","Fast Ring cycles","Defense-resistant goal control"],"optional":["Broad neutral-goal mechanisms before core control is mature"]},
+    ("VEX", 2021): {"must":["Fast Ball intake","Reliable goal scoring","Goal ownership/control mechanism","Autonomous scoring routine","Robust drivetrain"],"should":["Ball sorting/routing","Multiple autonomous routes","Defense-resistant scoring"],"optional":["Complex multi-goal specialization"]},
+    ("VEX", 2020): {"must":["Fast Cube intake","Reliable Cube stacking/scoring","Tower interaction","Autonomous scoring routine","Stable drivetrain"],"should":["Automated stacking alignment","Multiple autonomous routes","Defense-resistant Cube control"],"optional":["Maximum-height stacking before repeatability"]},
+    ("VEX", 2019): {"must":["Fast Cap/Ball interaction","Reliable Flag scoring","Platform endgame","Autonomous scoring routine","Robust drivetrain"],"should":["Cap flipping/scoring breadth","Multiple autonomous routes","Defense-resistant play"],"optional":["Complex high-cap specialization before core scoring"]},
+    ("VEX", 2018): {"must":["Fast Cone intake","Reliable Cone stacking","Mobile Goal manipulation","Autonomous scoring routine","Stable drivetrain"],"should":["Automated stack positioning","Multiple Mobile Goal strategies","Defense-resistant possession"],"optional":["Maximum stack height before repeatable cycles"]},
+    ("VEX", 2017): {"must":["Fast Star/Cube acquisition","Reliable fence scoring","Autonomous scoring routine","Hanging capability","Robust drivetrain"],"should":["Multi-object handling","Multiple autonomous routes","Defense-resistant scoring"],"optional":["Complex high-hang strategy before core scoring"]},
     ("VEX", 2026): {
         "must": ["Fast primary game-object acquisition", "Reliable high-throughput scoring", "Compact maneuverable drivetrain", "Autonomous scoring routine", "Mechanism designed for repeated cycles"],
         "should": ["Game-object control/denial capability", "Multiple autonomous starting strategies", "Defense-resistant scoring routes"],
@@ -215,6 +224,53 @@ def performance_targets(program, season, tranche, event_week=4):
             "week_note":f"Week {event_week} target scaled for the selected team's hidden history rating."
         }
     return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tier scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Add only after marginal capabilities before the primary scoring loop is reliable.","Prioritize after peak speed before integration and contested testing."],"week_note":f"Week {event_week}"}
+
+
+VEX_REFERENCE_TARGETS = {
+    2026: {"auto":(15,35),"teleop":(45,90),"rate":"Target 6–10 high-value scoring/control actions with low possession loss.","cycles":"Target ~10–18 sec acquire/control/score cycles."},
+    2025: {"auto":(15,35),"teleop":(45,90),"rate":"Target 6–10 repeatable scoring actions while preserving mobile-goal/ring control.","cycles":"Target ~10–18 sec scoring cycles with endgame time protected."},
+    2024: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Triball scoring/clearing actions with reliable match-load execution.","cycles":"Target ~10–18 sec Triball acquire-to-goal cycles."},
+    2023: {"auto":(15,35),"teleop":(40,85),"rate":"Target 8–14 Disc scoring actions with low miss rate.","cycles":"Target ~7–12 sec collect/index/shoot cycles."},
+    2022: {"auto":(15,35),"teleop":(40,85),"rate":"Target 5–9 Mobile Goal/Ring scoring actions plus reliable platform endgame.","cycles":"Target ~12–20 sec Mobile Goal/Ring control cycles."},
+    2021: {"auto":(15,35),"teleop":(40,85),"rate":"Target 8–14 Ball scoring/control actions while maintaining goal ownership.","cycles":"Target ~8–14 sec Ball acquire-to-goal cycles."},
+    2020: {"auto":(15,35),"teleop":(40,85),"rate":"Target 7–12 Cube scoring/stacking actions with reliable tower control.","cycles":"Target ~10–18 sec Cube acquire-to-score cycles."},
+    2019: {"auto":(15,35),"teleop":(40,85),"rate":"Target 7–12 Cap/Flag scoring actions with reliable platform endgame.","cycles":"Target ~10–18 sec acquire-to-score cycles."},
+    2018: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Cone scoring actions plus reliable Mobile Goal control.","cycles":"Target ~12–20 sec Cone/Mobile Goal scoring cycles."},
+    2017: {"auto":(15,35),"teleop":(40,85),"rate":"Target 6–10 Star/Cube scoring actions with reliable hanging/endgame.","cycles":"Target ~10–18 sec acquire-to-score cycles."},
+}
+
+TAILOR_LEVELS=("A","B","C","D","E")
+TRANCHE_BOUNDS={"T1":(85,100),"T2":(75,85),"T3":(63,75),"T4":(48,63),"T5":(32,48),"T6":(0,32)}
+TAILOR_FACTOR={"A":0.88,"B":0.94,"C":1.00,"D":1.06,"E":1.12}
+
+def tailoring_level(tranche, composite):
+    """Map continuous historical capacity to an A-E quintile inside its tranche."""
+    if composite is None:return "A"
+    lo,hi=TRANCHE_BOUNDS.get(tranche,(0,100))
+    width=max(1e-9,hi-lo)
+    q=max(0.0,min(0.999999,(float(composite)-lo)/width))
+    return TAILOR_LEVELS[min(4,int(q*5))]
+
+def build_lookup_cell(program,season,tranche,tailor,event_week):
+    """Canonical Game x Tranche x Tailoring x Week recommendation package."""
+    base=performance_targets(program,season,tranche,event_week)
+    tf=TAILOR_FACTOR[tailor]
+    out=dict(base)
+    out["auto"]=_scale_range(base["auto"],tf)
+    out["teleop"]=_scale_range(base["teleop"],tf)
+    out["features"]=robot_features(program,season,tranche)
+    out["tranche"]=tranche;out["tailoring"]=tailor;out["week"]=int(event_week)
+    out["lookup_key"]=f"{program}:{int(season)}:{tranche}:{tailor}:W{int(event_week)}"
+    return out
+
+def build_game_lookup(program,season):
+    return {(t,a,w):build_lookup_cell(program,season,t,a,w)
+            for t in ("T1","T2","T3","T4","T5","T6")
+            for a in TAILOR_LEVELS for w in range(1,9)}
+
+def lookup_recommendation(program,season,tranche,composite,event_week):
+    a=tailoring_level(tranche,composite)
+    return build_lookup_cell(program,season,tranche,a,event_week)
 
 def derivation_text(program, season, tranche):
     return (
