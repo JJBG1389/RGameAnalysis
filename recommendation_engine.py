@@ -210,8 +210,9 @@ def performance_targets(program, season, tranche, event_week=4):
         base["teleop"]=_scale_range(base["teleop"],factor)
         base["week_note"]=f"Week {event_week} target; week factor {factor:.2f} relative to the mid-season reference."
         return base
-    if program=="FRC" and int(season) in FRC_REFERENCE_TARGETS:
-        ref=FRC_REFERENCE_TARGETS[int(season)]
+    references={"FRC":FRC_REFERENCE_TARGETS,"FTC":FTC_REFERENCE_TARGETS,"VEX":VEX_REFERENCE_TARGETS}
+    ref=references.get(program,{}).get(int(season))
+    if ref is not None:
         tf=TRANCHE_TARGET_FACTOR.get(tranche,1.0)
         f=tf*factor
         alo,ahi=ref["auto"]; tlo,thi=ref["teleop"]
@@ -225,6 +226,17 @@ def performance_targets(program, season, tranche, event_week=4):
         }
     return {"auto":"Game-specific numeric target not yet encoded","teleop":"Game-specific numeric target not yet encoded","rate":"Measure top-tier scoring rate from live data before setting a numeric target.","cycles":"Optimize the highest-value repeatable scoring loop.","avoid":["Add only after marginal capabilities before the primary scoring loop is reliable.","Prioritize after peak speed before integration and contested testing."],"week_note":f"Week {event_week}"}
 
+
+FTC_REFERENCE_TARGETS = {
+    2025: {"auto":(20,45),"teleop":(55,105),"rate":"Target 5–8 successful Sample/Specimen scoring actions in teleop, depending on specialization.","cycles":"Target ~12–20 sec scoring cycles; reserve 15–25 sec for a reliable ascent/endgame."},
+    2024: {"auto":(20,45),"teleop":(60,115),"rate":"Target 6–10 successful Pixel scoring cycles plus a reliable endgame contribution.","cycles":"Target ~10–18 sec Pixel cycles; protect the final 20–30 sec for Hang/Drone execution."},
+    2023: {"auto":(20,45),"teleop":(55,110),"rate":"Target 7–12 reliable Cone placements, emphasizing high-value Junctions when cycle time supports them.","cycles":"Target ~9–16 sec Cone cycles from stack/floor to Junction."},
+    2022: {"auto":(15,40),"teleop":(50,100),"rate":"Target 7–12 Freight scores plus the alliance-role Carousel/endgame contribution.","cycles":"Target ~9–16 sec Warehouse-to-Hub cycles; budget ~8–12 sec for Carousel when assigned."},
+    2021: {"auto":(20,50),"teleop":(60,120),"rate":"Target 12–20 scored Rings or equivalent Powershot/high-goal value with low miss rate.","cycles":"Target ~4–7 sec per 3-Ring acquire/index/shoot sequence once positioned."},
+    2020: {"auto":(20,50),"teleop":(50,105),"rate":"Target 5–9 delivered/scored Stones with repeatable Foundation/endgame execution.","cycles":"Target ~12–20 sec quarry-to-building-zone Stone cycles."},
+    2019: {"auto":(15,40),"teleop":(45,95),"rate":"Target 6–10 Mineral scoring cycles plus reliable land/park/hang value.","cycles":"Target ~12–20 sec crater-to-lander Mineral cycles."},
+    2018: {"auto":(15,40),"teleop":(45,95),"rate":"Target 5–9 reliable Glyph placements plus Relic/endgame value when mature.","cycles":"Target ~12–22 sec Glyph acquire-to-Cryptobox cycles; reserve ~20–30 sec for Relic play when pursued."},
+}
 
 VEX_REFERENCE_TARGETS = {
     2026: {"auto":(15,35),"teleop":(45,90),"rate":"Target 6–10 high-value scoring/control actions with low possession loss.","cycles":"Target ~10–18 sec acquire/control/score cycles."},
