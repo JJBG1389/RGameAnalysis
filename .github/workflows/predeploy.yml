@@ -47,3 +47,6 @@ jobs:
         run: timeout 15s streamlit run app.py --server.headless true --server.port 8501 > /tmp/streamlit.log 2>&1 & sleep 8; curl -f http://localhost:8501/_stcore/health; cat /tmp/streamlit.log
       - name: Model 5.5 observed-performance scoring rubric
         run: python tests/model55_observed_scoring.py
+
+      - name: Observed-result backtest pipeline regression
+        run: python tests/model55_backtest_pipeline.py
