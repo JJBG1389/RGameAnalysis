@@ -1,10 +1,10 @@
 import streamlit as st
-from recommendation_engine import recommend, worlds_delta, robot_features, worlds_feature_delta, performance_targets, derivation_text, TRANCHE_LABELS, TRAJECTORIES, TRANCHE_SHARES
+from recommendation_engine import recommend, worlds_delta, robot_features, worlds_feature_delta, performance_targets, derivation_text, lookup_recommendation, TRANCHE_LABELS, TRAJECTORIES, TRANCHE_SHARES
 from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.4 · Deploy 2026.10.04.22 · live competition data · team-history + week-aware planning")
+st.caption("Model 5.5 · Validation build · live competition data · team-history + week-aware planning")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -26,7 +26,7 @@ GAME_OPTIONS = {
 
 with st.sidebar:
     st.header("Team & game")
-    program = st.selectbox("Program", ["FRC", "FTC"])
+    program = st.selectbox("Program", ["FRC", "FTC", "VEX"])
     game_labels = [f"{year} — {name}" for year, name in GAME_OPTIONS[program].items()]
     selected_game = st.selectbox("Game / season", game_labels)
     season = int(selected_game.split(" — ", 1)[0])
@@ -109,8 +109,8 @@ c1.metric("Competition week", f"Week {event_week}", help="The selected competiti
 c2.metric("Reliability", f"{robot_reliability}%", help="How often the robot completes a full match without a major robot-caused problem. Example: 19 successful full matches out of 20 = 95%.")
 c3.metric("CPR", f"{cpr}%", help="Contested Performance Retention: scoring under realistic defense/traffic divided by clean-practice scoring. Example: 80 points under pressure divided by 100 clean points = 80% CPR.")
 
-features = robot_features(program, season, tranche)
-targets = performance_targets(program, season, tranche, event_week)
+features = targets["features"]
+targets = lookup_recommendation(program, season, tranche, tranche_data.get("composite"), event_week)
 
 st.subheader("Recommended robot specification")
 st.caption(derivation_text(program, season, tranche))
