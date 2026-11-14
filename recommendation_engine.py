@@ -192,7 +192,24 @@ def _scale_range(text,factor):
     plus="+" if "+" in str(text) else ""
     return f"{lo}–{hi}{plus}{suffix}"
 
+# BIOBUZZ 2026-27: provisional individual team-event OPR contribution bands.
+# Derived from 2,903 observed FTCScout team-event records through 2026-11-14.
+# Not alliance scores; do not interpret as guaranteed performance.
+FTC_2027_OPR_BANDS={
+ "T1":((21,31),(43,75)), "T2":((16,25),(32,53)),
+ "T3":((10,19),(21,39)), "T4":((6,13),(13,27)),
+ "T5":((2,9),(7,19)), "T6":((0,5),(3,12)),
+}
+
 def performance_targets(program, season, tranche, event_week=4):
+    if program=="FTC" and int(season)==2027:
+        a,b=FTC_2027_OPR_BANDS[tranche]
+        return {"auto":f"{a[0]}–{a[1]} estimated team OPR points",
+                "teleop":f"{b[0]}–{b[1]} estimated team OPR points",
+                "rate":"Prioritize repeatable HIVE scoring; measure real match throughput.",
+                "cycles":"Measure scoring-loop time before setting an unsupported cycle target.",
+                "avoid":["Unvalidated secondary scoring complexity.","Element-control strategies that violate current rules."],
+                "week_note":"Provisional FTCScout 2026-11-14 event-OPR baseline; no inferred week growth."}
     game=PERFORMANCE_TARGETS.get((program,int(season)),{})
     factor=_week_factor(event_week)
     if tranche in game:
