@@ -289,6 +289,9 @@ def build_lookup_cell(program,season,tranche,tailor,event_week):
     out=dict(base)
     out["auto"]=_scale_range(base["auto"],tf)
     out["teleop"]=_scale_range(base["teleop"],tf)
+    if program=="FTC" and int(season)==2027:
+        out["auto"]=out["auto"].replace(" points"," estimated OPR points")
+        out["teleop"]=out["teleop"].replace(" points"," estimated OPR points")
     out["features"]=robot_features(program,season,tranche)
     out["tranche"]=tranche;out["tailoring"]=tailor;out["week"]=int(event_week)
     out["lookup_key"]=f"{program}:{int(season)}:{tranche}:{tailor}:W{int(event_week)}"
