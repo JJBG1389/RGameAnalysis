@@ -216,7 +216,7 @@ def performance_targets(program, season, tranche, event_week=4):
         base=dict(game[tranche])
         base["auto"]=_scale_range(base["auto"],factor)
         base["teleop"]=_scale_range(base["teleop"],factor)
-        base["week_note"]=f"Week {event_week} target; week factor {factor:.2f} relative to the mid-season reference."
+        base["week_note"]=f"FRC model-assumed Week {event_week} factor {factor:.2f} versus midseason. This is an unvalidated planning scenario, not an observed improvement rate." if program=="FRC" else f"Week {event_week} model target; factor {factor:.2f}."
         return base
     if program=="FRC" and int(season) in FRC_REFERENCE_TARGETS:
         ref=FRC_REFERENCE_TARGETS[int(season)]
