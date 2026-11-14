@@ -1,3 +1,5 @@
+import os,sys
+sys.path.insert(0,os.path.dirname(os.path.dirname(__file__)))
 from backtest_observed import evaluate,aggregate
 rows=[
  {"program":"FRC","season":"2025","team":"254","week":"1","observed_percentile":"95"},
