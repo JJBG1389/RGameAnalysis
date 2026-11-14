@@ -4,7 +4,7 @@ from data_sources import live_snapshot
 
 st.set_page_config(page_title="RGameAnalysis Team Advisor", page_icon="🤖", layout="wide")
 st.title("RGameAnalysis Team Advisor")
-st.caption("Model 5.4 · FTC BIOBUZZ observed-OPR calibration 2026.11.14 · live competition data")
+st.caption("Model 5.4 · FTC BIOBUZZ OPR calibration + FRC assumption labeling · 2026.11.14")
 
 GAME_OPTIONS = {
     "FRC": {
@@ -50,7 +50,7 @@ if refresh:
 
 if team.strip():
     with st.spinner("Checking live competition sources…"):
-        live = get_live(program, team.strip(), season, "5.4.21")
+        live = get_live(program, team.strip(), season, "5.4.23")
 else:
     live = {"profile": None, "manuals": {}, "sources": [], "warnings": ["Enter a team number to query live team data."]}
 
@@ -116,7 +116,7 @@ st.subheader("Recommended robot specification")
 st.caption(derivation_text(program, season, tranche))
 
 m1, m2 = st.columns(2)
-m1.metric("Target autonomous score", targets["auto"], help="Recommended autonomous contribution for this game, team history, and competition week. It is a planning target, not an official FIRST benchmark.")
+m1.metric("Target autonomous score", targets["auto"], help="FTC 2027: provisional estimated individual team-event OPR range. FRC: modeled planning target with an unvalidated week multiplier. Neither is an official FIRST benchmark.")
 m2.metric("Target teleop score", targets["teleop"], help="Recommended teleop contribution based on this game's scoring economics, the team's historical execution, and the selected competition week. Later weeks intentionally expect greater maturity.")
 st.caption(targets.get("week_note",""))
 
