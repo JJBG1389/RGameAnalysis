@@ -50,3 +50,6 @@ jobs:
 
       - name: Observed-result backtest pipeline regression
         run: python tests/model55_backtest_pipeline.py
+
+      - name: Season data collector offline smoke
+        run: python tests/season_collector_smoke.py
