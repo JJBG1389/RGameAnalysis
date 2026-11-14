@@ -29,8 +29,8 @@ def dump(path,obj):
 
 def collect_ftc(session,root,limit):
     # FTCScout season keys use the starting year (BIOBUZZ=2026).
-    events=fetch(session,f"{FTC_BASE}/events/search/2026",{"hasMatches":"true","limit":limit})
-    if not isinstance(events,list):raise ValueError("Unexpected FTC event search shape")
+    events=fetch(session,f"{FTC_BASE}/events/search/2026",{"hasMatches":"true","end":"2026-11-14","limit":limit})
+    if not isinstance(events,list):raise ValueError("Unexpected FTC event search shape")\n    if len(events)>=limit:raise RuntimeError("FTC event search reached the configured limit; dataset may be incomplete. Increase --limit or partition by dates.")
     dump(root/"ftc_events.json",events)
     errors=[];count=0
     for event in events:
@@ -65,9 +65,9 @@ def collect_vex(session,root,limit):
     session.headers.update({"Authorization":"Bearer "+os.environ["ROBOTEVENTS_TOKEN"]})
     # Program 1 is V5RC; 2026-27 Override season ID must be supplied,
     # never guessed from a calendar year.
-    season=os.environ.get("VEX_SEASON_ID")
-    if not season:raise RuntimeError("Set VEX_SEASON_ID to the verified RobotEvents Override season ID")
-    events=vex_pages(session,"events",{"season[]":season,"program[]":1})[:limit]
+    season=os.environ.get("VEX_SEASON_ID","204")
+    if season!="204":raise RuntimeError("This collector is scoped to V5RC Override (RobotEvents season 204)")
+    events=vex_pages(session,"events",{"season[]":season,"program[]":1})\n    events=[e for e in events if str(e.get("start") or "")[:10]<="2026-11-14"][:limit]
     dump(root/"vex_events.json",events)
     errors=[];count=0
     for event in events:
@@ -99,7 +99,7 @@ def main():
         session.headers["User-Agent"]="RGameAnalysis research collector/0.1"
         result=collect_ftc(session,root,args.limit) if args.program=="FTC" else collect_vex(session,root,args.limit)
     result["collected_at_utc"]=datetime.datetime.now(datetime.timezone.utc).isoformat()
-    result["season"]="2026-27"
+    result["season"]="2026-27"\n    result["as_of"]="2026-11-14"
     dump(root/f"{args.program.lower()}_manifest.json",result)
     print(json.dumps(result,indent=2))
     if result["errors"]:raise SystemExit(2)
