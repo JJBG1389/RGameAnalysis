@@ -13,7 +13,7 @@ jobs:
           python-version: '3.12'
       - run: pip install requests
       - name: Fetch FTC event records (bounded)
-        run: python scripts/collect_2026_season.py --program FTC --limit 250 --output-dir collected
+        run: python scripts/collect_2026_season.py --program FTC --limit 3000 --output-dir collected
       - uses: actions/upload-artifact@v4
         if: always()
         with:
