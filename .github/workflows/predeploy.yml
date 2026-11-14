@@ -53,3 +53,16 @@ jobs:
 
       - name: Season data collector offline smoke
         run: python tests/season_collector_smoke.py
+
+      - name: Collect FTC early-season event sample
+        id: ftc_collect
+        continue-on-error: true
+        run: python scripts/collect_2026_season.py --program FTC --limit 3000 --output-dir collected
+      - name: Upload FTC collection evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ftc-2026-raw-sample
+          path: collected/
+          if-no-files-found: warn
+          retention-days: 30
