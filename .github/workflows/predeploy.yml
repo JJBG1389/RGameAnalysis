@@ -66,3 +66,19 @@ jobs:
           path: collected/
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Collect VEX Override early-season event sample
+        id: vex_collect
+        continue-on-error: true
+        env:
+          ROBOTEVENTS_TOKEN: ${{ secrets.ROBOTEVENTS_TOKEN }}
+          VEX_SEASON_ID: "204"
+        run: python scripts/collect_2026_season.py --program VEX --limit 200 --output-dir collected
+      - name: Upload VEX collection evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vex-override-raw-sample
+          path: collected/
+          if-no-files-found: warn
+          retention-days: 30
